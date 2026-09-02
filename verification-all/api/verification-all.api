@@ -1,0 +1,8 @@
+public final class com/didww/android/sdk/verification/all/DidwwVerification {
+	public fun <init> (Landroid/content/Context;Lcom/didww/android/sdk/verification/Auth;Lcom/didww/android/sdk/verification/Environment;Lcom/didww/android/sdk/verification/Config;)V
+	public synthetic fun <init> (Landroid/content/Context;Lcom/didww/android/sdk/verification/Auth;Lcom/didww/android/sdk/verification/Environment;Lcom/didww/android/sdk/verification/Config;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun resume (Ljava/lang/String;Lcom/didww/android/sdk/verification/DeliveryMethod;)Lcom/didww/android/sdk/verification/VerificationHandle;
+	public final fun start (Ljava/lang/String;Lcom/didww/android/sdk/verification/DeliveryMethod;Lcom/didww/android/sdk/verification/SmsOptions;Lcom/didww/android/sdk/verification/CalloutOptions;)Lcom/didww/android/sdk/verification/VerificationHandle;
+	public static synthetic fun start$default (Lcom/didww/android/sdk/verification/all/DidwwVerification;Ljava/lang/String;Lcom/didww/android/sdk/verification/DeliveryMethod;Lcom/didww/android/sdk/verification/SmsOptions;Lcom/didww/android/sdk/verification/CalloutOptions;ILjava/lang/Object;)Lcom/didww/android/sdk/verification/VerificationHandle;
+}
+

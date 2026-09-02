@@ -1,0 +1,292 @@
+public final class com/didww/android/sdk/verification/ApiErrorCode : java/lang/Enum {
+	public static final field ALREADY_VERIFIED Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field APPLICATION_DELETED Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field APP_HASH_INVALID Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field BALANCE_INSUFFICIENT Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field CODE_BLANK Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field CODE_INVALID Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field CODE_VALUE_PRESENT Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field Companion Lcom/didww/android/sdk/verification/ApiErrorCode$Companion;
+	public static final field DELIVERY_METHOD_BLANK Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field DELIVERY_METHOD_INCLUSION Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field DELIVERY_METHOD_INVALID Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field DENIED_BY_CALLBACK Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field DENIED_INVALID_CALLBACK_RESPONSE Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field DENIED_MISSING_CALLBACK_URL Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field DESTINATION_BLANK Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field DESTINATION_INVALID Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field DESTINATION_NOT_SUPPORTED_FOR_CHANNEL Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field DISPATCH_FAILED Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field EXPIRED Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field INTERNAL_ERROR Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field LANGUAGES_INVALID Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field NOT_FOUND Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field NOT_READY_TO_REPORT Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field PARAMETER_MISSING Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field STALE_DISPATCH Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field SUPERSEDED Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field TOO_MANY_ATTEMPTS Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field UNAUTHORIZED Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field VALIDATION_FAILED Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getSlug ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static fun values ()[Lcom/didww/android/sdk/verification/ApiErrorCode;
+}
+
+public final class com/didww/android/sdk/verification/ApiErrorCode$Companion {
+	public final fun fromSlug (Ljava/lang/String;)Lcom/didww/android/sdk/verification/ApiErrorCode;
+}
+
+public final class com/didww/android/sdk/verification/ApiErrorItem {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lcom/didww/android/sdk/verification/ApiErrorCode;)V
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCode ()Ljava/lang/String;
+	public final fun getDetail ()Ljava/lang/String;
+	public final fun getKnown ()Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class com/didww/android/sdk/verification/Auth {
+}
+
+public final class com/didww/android/sdk/verification/Auth$Basic : com/didww/android/sdk/verification/Auth {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun getKey ()Ljava/lang/String;
+	public final fun getSecret ()Ljava/lang/String;
+}
+
+public final class com/didww/android/sdk/verification/Auth$Public : com/didww/android/sdk/verification/Auth {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun getApplicationKey ()Ljava/lang/String;
+}
+
+public final class com/didww/android/sdk/verification/CalloutInfo {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getLanguage ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/didww/android/sdk/verification/CalloutOptions {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getLanguages ()Ljava/util/List;
+}
+
+public final class com/didww/android/sdk/verification/Config {
+	public fun <init> ()V
+	public fun <init> (II)V
+	public synthetic fun <init> (IIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getConnectTimeoutMillis ()I
+	public final fun getReadTimeoutMillis ()I
+}
+
+public final class com/didww/android/sdk/verification/DeliveryMethod : java/lang/Enum {
+	public static final field CALLOUT Lcom/didww/android/sdk/verification/DeliveryMethod;
+	public static final field SMS Lcom/didww/android/sdk/verification/DeliveryMethod;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/didww/android/sdk/verification/DeliveryMethod;
+	public static fun values ()[Lcom/didww/android/sdk/verification/DeliveryMethod;
+}
+
+public abstract interface annotation class com/didww/android/sdk/verification/DidwwInternalApi : java/lang/annotation/Annotation {
+}
+
+public abstract interface class com/didww/android/sdk/verification/Environment {
+}
+
+public final class com/didww/android/sdk/verification/Environment$Custom : com/didww/android/sdk/verification/Environment {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lcom/didww/android/sdk/verification/Environment$Custom;
+	public static synthetic fun copy$default (Lcom/didww/android/sdk/verification/Environment$Custom;Ljava/lang/String;ILjava/lang/Object;)Lcom/didww/android/sdk/verification/Environment$Custom;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getUrl ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/didww/android/sdk/verification/Environment$Production : com/didww/android/sdk/verification/Environment {
+	public static final field INSTANCE Lcom/didww/android/sdk/verification/Environment$Production;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/didww/android/sdk/verification/Environment$Sandbox : com/didww/android/sdk/verification/Environment {
+	public static final field INSTANCE Lcom/didww/android/sdk/verification/Environment$Sandbox;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class com/didww/android/sdk/verification/FailureReason {
+}
+
+public final class com/didww/android/sdk/verification/FailureReason$Api : com/didww/android/sdk/verification/FailureReason {
+	public fun <init> (Lcom/didww/android/sdk/verification/ApiErrorItem;)V
+	public final fun component1 ()Lcom/didww/android/sdk/verification/ApiErrorItem;
+	public final fun copy (Lcom/didww/android/sdk/verification/ApiErrorItem;)Lcom/didww/android/sdk/verification/FailureReason$Api;
+	public static synthetic fun copy$default (Lcom/didww/android/sdk/verification/FailureReason$Api;Lcom/didww/android/sdk/verification/ApiErrorItem;ILjava/lang/Object;)Lcom/didww/android/sdk/verification/FailureReason$Api;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getError ()Lcom/didww/android/sdk/verification/ApiErrorItem;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/didww/android/sdk/verification/FailureReason$Sdk : com/didww/android/sdk/verification/FailureReason {
+	public fun <init> (Lcom/didww/android/sdk/verification/SdkError;)V
+	public final fun component1 ()Lcom/didww/android/sdk/verification/SdkError;
+	public final fun copy (Lcom/didww/android/sdk/verification/SdkError;)Lcom/didww/android/sdk/verification/FailureReason$Sdk;
+	public static synthetic fun copy$default (Lcom/didww/android/sdk/verification/FailureReason$Sdk;Lcom/didww/android/sdk/verification/SdkError;ILjava/lang/Object;)Lcom/didww/android/sdk/verification/FailureReason$Sdk;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getError ()Lcom/didww/android/sdk/verification/SdkError;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class com/didww/android/sdk/verification/SdkError {
+}
+
+public final class com/didww/android/sdk/verification/SdkError$AlreadyRunning : com/didww/android/sdk/verification/SdkError {
+	public static final field INSTANCE Lcom/didww/android/sdk/verification/SdkError$AlreadyRunning;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/didww/android/sdk/verification/SdkError$Decoding : com/didww/android/sdk/verification/SdkError {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/Throwable;
+	public final fun copy (Ljava/lang/String;Ljava/lang/Throwable;)Lcom/didww/android/sdk/verification/SdkError$Decoding;
+	public static synthetic fun copy$default (Lcom/didww/android/sdk/verification/SdkError$Decoding;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)Lcom/didww/android/sdk/verification/SdkError$Decoding;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCause ()Ljava/lang/Throwable;
+	public final fun getMessage ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/didww/android/sdk/verification/SdkError$Superseded : com/didww/android/sdk/verification/SdkError {
+	public static final field INSTANCE Lcom/didww/android/sdk/verification/SdkError$Superseded;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/didww/android/sdk/verification/SdkError$Transport : com/didww/android/sdk/verification/SdkError {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/Throwable;
+	public final fun copy (Ljava/lang/String;Ljava/lang/Throwable;)Lcom/didww/android/sdk/verification/SdkError$Transport;
+	public static synthetic fun copy$default (Lcom/didww/android/sdk/verification/SdkError$Transport;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)Lcom/didww/android/sdk/verification/SdkError$Transport;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCause ()Ljava/lang/Throwable;
+	public final fun getMessage ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/didww/android/sdk/verification/SmsInfo {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getInterceptionTimeoutSeconds ()Ljava/lang/Integer;
+	public final fun getLanguage ()Ljava/lang/String;
+	public final fun getTemplate ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/didww/android/sdk/verification/SmsOptions {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getLanguages ()Ljava/util/List;
+}
+
+public abstract interface class com/didww/android/sdk/verification/VerificationHandle {
+	public abstract fun getStates ()Lkotlinx/coroutines/flow/Flow;
+	public abstract fun submit (Ljava/lang/String;)V
+}
+
+public abstract interface class com/didww/android/sdk/verification/VerificationState {
+}
+
+public final class com/didww/android/sdk/verification/VerificationState$AwaitingInput : com/didww/android/sdk/verification/VerificationState {
+	public fun <init> (Ljava/lang/String;Lcom/didww/android/sdk/verification/DeliveryMethod;Ljava/lang/String;Ljava/lang/String;Lcom/didww/android/sdk/verification/SmsInfo;Lcom/didww/android/sdk/verification/CalloutInfo;Ljava/lang/Long;Lcom/didww/android/sdk/verification/ApiErrorItem;)V
+	public synthetic fun <init> (Ljava/lang/String;Lcom/didww/android/sdk/verification/DeliveryMethod;Ljava/lang/String;Ljava/lang/String;Lcom/didww/android/sdk/verification/SmsInfo;Lcom/didww/android/sdk/verification/CalloutInfo;Ljava/lang/Long;Lcom/didww/android/sdk/verification/ApiErrorItem;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getCallout ()Lcom/didww/android/sdk/verification/CalloutInfo;
+	public final fun getDeliveryMethod ()Lcom/didww/android/sdk/verification/DeliveryMethod;
+	public final fun getDestination ()Ljava/lang/String;
+	public final fun getExpiresAtEpochMillis ()Ljava/lang/Long;
+	public final fun getFee ()Ljava/lang/String;
+	public final fun getLastError ()Lcom/didww/android/sdk/verification/ApiErrorItem;
+	public final fun getSms ()Lcom/didww/android/sdk/verification/SmsInfo;
+	public final fun getVerificationId ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/didww/android/sdk/verification/VerificationState$Captured : com/didww/android/sdk/verification/VerificationState {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun getValue ()Ljava/lang/String;
+}
+
+public final class com/didww/android/sdk/verification/VerificationState$Denied : com/didww/android/sdk/verification/VerificationState {
+	public fun <init> (Lcom/didww/android/sdk/verification/ApiErrorItem;)V
+	public final fun getError ()Lcom/didww/android/sdk/verification/ApiErrorItem;
+}
+
+public final class com/didww/android/sdk/verification/VerificationState$Expired : com/didww/android/sdk/verification/VerificationState {
+	public static final field INSTANCE Lcom/didww/android/sdk/verification/VerificationState$Expired;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/didww/android/sdk/verification/VerificationState$Failed : com/didww/android/sdk/verification/VerificationState {
+	public fun <init> (Lcom/didww/android/sdk/verification/FailureReason;)V
+	public final fun getReason ()Lcom/didww/android/sdk/verification/FailureReason;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/didww/android/sdk/verification/VerificationState$SetupError : com/didww/android/sdk/verification/VerificationState {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun getCode ()Ljava/lang/String;
+	public final fun getDetail ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/didww/android/sdk/verification/VerificationState$Starting : com/didww/android/sdk/verification/VerificationState {
+	public static final field INSTANCE Lcom/didww/android/sdk/verification/VerificationState$Starting;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/didww/android/sdk/verification/VerificationState$Submitting : com/didww/android/sdk/verification/VerificationState {
+	public static final field INSTANCE Lcom/didww/android/sdk/verification/VerificationState$Submitting;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/didww/android/sdk/verification/VerificationState$Verified : com/didww/android/sdk/verification/VerificationState {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun getVerificationId ()Ljava/lang/String;
+}
+
+public final class com/didww/android/sdk/verification/callout/CalloutVerification {
+	public fun <init> (Landroid/content/Context;Lcom/didww/android/sdk/verification/Auth;Lcom/didww/android/sdk/verification/Environment;Lcom/didww/android/sdk/verification/Config;)V
+	public synthetic fun <init> (Landroid/content/Context;Lcom/didww/android/sdk/verification/Auth;Lcom/didww/android/sdk/verification/Environment;Lcom/didww/android/sdk/verification/Config;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun resume (Ljava/lang/String;)Lcom/didww/android/sdk/verification/VerificationHandle;
+	public final fun start (Ljava/lang/String;Lcom/didww/android/sdk/verification/CalloutOptions;)Lcom/didww/android/sdk/verification/VerificationHandle;
+	public static synthetic fun start$default (Lcom/didww/android/sdk/verification/callout/CalloutVerification;Ljava/lang/String;Lcom/didww/android/sdk/verification/CalloutOptions;ILjava/lang/Object;)Lcom/didww/android/sdk/verification/VerificationHandle;
+}
+

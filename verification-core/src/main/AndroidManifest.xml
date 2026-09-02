@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The ONLY permission this SDK costs an integrator. Declared once here, in core, so
+  every channel module inherits it and no channel can add to it unnoticed. The
+  merged-manifest golden asserts the merged set against :manifest-probe.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+</manifest>

@@ -1,0 +1,89 @@
+# Exact pins, never floors.
+#
+# AGP 8.13.2 + Kotlin 2.4.10 + Gradle 8.14.5 is the combination this SDK has been
+# empirically verified against, on macOS and Linux both. Newer
+# stable releases exist (AGP 9.3.1, Gradle 9.6.1, coroutines 1.11.0, serialization
+# 1.11.0); they are deliberately not taken. A proven combination is worth more than a
+# current one. Bump via a deliberate change, one dependency at a time, re-running
+# `./gradlew check`.
+#
+# minSdk 23 has ZERO headroom: play-services-auth-api-phone:18.3.1 and
+# play-services-basement:18.9.0 both declare minSdkVersion 23 — exactly our floor.
+# Any Play Services bump to 24 forces this SDK's minSdk up, which breaks integrators.
+# Check this on every Play Services bump.
+
+[versions]
+agp = "8.13.2"
+kotlin = "2.4.10"
+coroutines = "1.10.2"
+serialization = "1.9.0"
+playAuthApiPhone = "18.3.1"
+androidxCore = "1.16.0"
+robolectric = "4.16.1"
+junit = "4.13.2"
+bcv = "0.18.1"
+mavenPublish = "0.30.0"
+
+# `:sample` ONLY — never published, never on a library module's classpath.
+#
+# There is deliberately no `composeCompiler` version here. Since Kotlin 2.0 the Compose
+# compiler ships INSIDE Kotlin, so the plugin below takes `version.ref = "kotlin"` and
+# cannot drift from it. A separate pin would be a second source of truth for one thing.
+#
+# The BOM (2026.06.01, the newest stable) predates Kotlin 2.4.10 (published 2026-07-14) by
+# about a month, which is the safe direction: a newer compiler against an older runtime.
+# The reverse — a runtime newer than the compiler — is what fails.
+composeBom = "2026.06.01"
+activityCompose = "1.13.0"
+# NOT 2.10.0 or 2.11.0. Both androidx.lifecycle 2.11.0 artifacts demand AGP 9.1.0+ and
+# compileSdk 37; this build is pinned to AGP 8.13.2 / compileSdk 36 and stays there. The
+# build fails loudly on that, which is the good case — verified by building, not assumed.
+lifecycle = "2.9.4"
+
+compileSdk = "36"
+minSdk = "23"
+javaVersion = "17"
+
+[libraries]
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
+
+# verification-sms only. `androidx.core` is declared EXPLICITLY rather than inherited
+# transitively via play-services-base, because the 6-arg ContextCompat.registerReceiver
+# overload is a compile-time dependency we must not lose to a transitive graph change.
+play-services-auth-api-phone = { module = "com.google.android.gms:play-services-auth-api-phone", version.ref = "playAuthApiPhone" }
+androidx-core = { module = "androidx.core:core", version.ref = "androidxCore" }
+
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+junit = { module = "junit:junit", version.ref = "junit" }
+
+# Referenced from build-logic's own classpath — a precompiled script plugin cannot apply
+# what is not on its classpath.
+android-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }
+kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+
+# Publishing, applied by the didww.library convention plugin. Declared as a LIBRARY and not
+# under [plugins] on purpose: a precompiled script plugin cannot see catalog accessors, so a
+# [plugins] entry would be unreachable there and the real version would end up duplicated in a
+# string literal — a second source of truth for one thing. build-logic consumes this exactly as
+# it consumes the two above.
+maven-publish-plugin = { module = "com.vanniktech:gradle-maven-publish-plugin", version.ref = "mavenPublish" }
+
+# `:sample` only. The BOM carries the versions for every androidx.compose.* artifact, so
+# those are listed without one.
+compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
+compose-ui = { module = "androidx.compose.ui:ui" }
+compose-material3 = { module = "androidx.compose.material3:material3" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
+androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
+androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+
+[plugins]
+android-library = { id = "com.android.library", version.ref = "agp" }
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+# Ships with Kotlin since 2.0 — hence version.ref = "kotlin", never its own pin.
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+binary-compatibility-validator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "bcv" }

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Intentionally empty. Anything appearing in this module's MERGED manifest was
+  contributed by the SDK or its dependency closure — which is exactly what the
+  merged-manifest golden asserts. Do not add anything here.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" />

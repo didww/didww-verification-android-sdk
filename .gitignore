@@ -1,0 +1,21 @@
+build/
+.gradle/
+# Kotlin compiler scratch, including error logs. Build output, and this repository is
+# published as source.
+.kotlin/
+local.properties
+.idea/
+*.iml
+.DS_Store
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Local agent and editor scratch — operational state, not part of the SDK. Ignored here
+# rather than in a personal global config, which a clone does not inherit.
+.omc/
+.claude/
+
+# Robolectric runtime, staged from the local Maven cache by vendorRobolectricRuntime.
+# 144 MB per jar — never committed.
+robolectric-runtime/

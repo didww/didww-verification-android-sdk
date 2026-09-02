@@ -1,0 +1,41 @@
+# What an integrator inherits in their merged manifest by depending on this SDK.
+#
+# MEASURED, not predicted. The subject is :manifest-probe, an application module that
+# declares nothing of its own and depends only on :verification-all. The control is the
+# same module with that dependency removed, which merges NOTHING — so every line below is
+# attributable to this SDK.
+#
+# Only the element path and android:name are recorded. AGP injects versionCode,
+# versionName, debuggable and platformBuildVersionCode and rewrites <uses-sdk>; a raw XML
+# diff would churn on every AGP bump and be deleted the first time it false-failed.
+#
+# Enumeration is POSITIONAL — every direct child of <manifest>, of <application>, and of
+# <queries>. Not a type allowlist: a Play Services bump that introduces a <service> or a
+# <uses-feature> must fail this check rather than slip past it.
+#
+# Everything except INTERNET arrives through verification-sms's Play Services chain:
+#   play-services-auth-api-phone -> play-services-base -> androidx.fragment
+#     -> androidx.activity -> androidx.lifecycle-runtime -> profileinstaller -> androidx.startup
+# A host that needs only callout verification pays none of it. That is the argument for
+# keeping verification-sms a separate artifact, and the strongest one there is.
+
+# --- the only permission this SDK asks for ---
+manifest/uses-permission  android.permission.INTERNET
+
+# --- androidx.core ---
+manifest/permission  com.didww.android.sdk.verification.probe.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+manifest/uses-permission  com.didww.android.sdk.verification.probe.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+manifest/application@appComponentFactory  androidx.core.app.CoreComponentFactory
+
+# --- Play Services ---
+manifest/application/activity  com.google.android.gms.common.api.GoogleApiActivity
+manifest/application/meta-data  com.google.android.gms.version
+
+# --- androidx.profileinstaller, pulled in transitively by the chain above ---
+# The receiver is EXPORTED (guarded by android.permission.DUMP). Worth knowing about.
+manifest/application/provider  androidx.startup.InitializationProvider
+manifest/application/receiver  androidx.profileinstaller.ProfileInstallReceiver
+
+# --- structural ---
+manifest/application
+manifest/uses-sdk

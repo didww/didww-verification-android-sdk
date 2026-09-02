@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  A framework theme, not an AppCompat or Material Components one. Compose draws its own
+  Material 3 surfaces, so the Android theme only has to supply the window background and
+  keep the platform action bar out of the way. Parenting on the framework avoids pulling
+  in appcompat purely to name a style.
+-->
+<resources>
+    <style name="Theme.DidwwSample" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>

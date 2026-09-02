@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Exactly 17. Every module declares jvmToolchain(17) and AGP 8.13.2 runs on it;
+      # a newer JDK is not a substitute.
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up the Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # Robolectric resolves its android-all runtime through its OWN Maven client, outside
+      # Gradle's resolution, so setup-gradle's cache does not cover it. One jar is 144 MB.
+      - name: Cache the Robolectric runtime
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository/org/robolectric
+          key: robolectric-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
+          restore-keys: robolectric-${{ runner.os }}-
+
+      - name: Show toolchain
+        run: |
+          java -version
+          ./gradlew --version
+
+      # No --offline. On a cold cache the run must reach the network once for Robolectric's
+      # runtime; vendorRobolectricRuntime warns rather than fails on an empty local cache,
+      # which is the designed bootstrap path.
+      - name: Check
+        run: ./gradlew check
+
+      # A green `check` that executed no tests is precisely the vacuous pass this
+      # repository's own guards exist to prevent, and it is not hypothetical: a test task
+      # that resolves to zero candidates still succeeds. Count what actually ran.
+      - name: Assert the suite actually ran
+        run: |
+          total=$(find . -path '*/build/test-results/*' -name 'TEST-*.xml' \
+            -exec grep -ho 'tests="[0-9]*"' {} \; | tr -dc '0-9\n' | paste -sd+ - | bc)
+          echo "executed test cases: ${total:-0}"
+          if [ -z "$total" ] || [ "$total" -eq 0 ]; then
+            echo "::error::No tests executed. A check that cannot fail is worse than no check."
+            exit 1
+          fi
+
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: reports
+          path: |
+            **/build/reports/
+            **/build/test-results/
+          retention-days: 7

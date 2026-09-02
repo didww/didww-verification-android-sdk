@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  A sample app's own declarations are its own. Note that the merged-manifest golden is
+  measured against :manifest-probe, NOT this module, precisely so that adding an activity
+  here can never be mistaken for the SDK growing a cost.
+
+  INTERNET is the only permission. There is deliberately no RECEIVE_SMS, READ_SMS or
+  READ_PHONE_STATE: the SMS Retriever API needs none of them, and that is its entire point.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:allowBackup="false"
+        android:label="DIDWW Verification Sample"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:theme="@style/Theme.DidwwSample">
+
+        <activity
+            android:name=".SampleActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+    </application>
+
+</manifest>
