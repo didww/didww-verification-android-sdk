@@ -1,4 +1,5 @@
 import com.android.build.gradle.LibraryExtension
+import com.vanniktech.maven.publish.SonatypeHost
 import org.gradle.process.CommandLineArgumentProvider
 import org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension
 
@@ -43,7 +44,7 @@ mavenPublishing {
     // The upload is left pending in the portal rather than released automatically. A published
     // version is permanent — it cannot be deleted, replaced or amended — so the last look
     // happens with a human in front of it.
-    publishToMavenCentral(automaticRelease = false)
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, automaticRelease = false)
 
     // Signing only when a key is actually configured, which is never in the repository and
     // always in the Gradle user home on a release machine.
