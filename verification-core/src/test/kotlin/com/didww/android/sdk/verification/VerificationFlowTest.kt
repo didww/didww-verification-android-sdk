@@ -4,6 +4,7 @@ import com.didww.android.sdk.verification.testing.FakeTransport
 import com.didww.android.sdk.verification.testing.Fixtures
 import com.didww.android.sdk.verification.testing.created
 import com.didww.android.sdk.verification.testing.ok
+import com.didww.android.sdk.verification.testing.tooManyRequests
 import com.didww.android.sdk.verification.testing.unprocessable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.awaitClose
@@ -502,6 +503,50 @@ class VerificationFlowTest {
         val awaiting = states.filterIsInstance<VerificationState.AwaitingInput>().single()
         assertEquals(Fixtures.INTERCEPTION_TIMEOUT, awaiting.sms?.interceptionTimeoutSeconds)
         collection.cancel()
+    }
+
+    // ----------------------------------------------------------------- code length
+
+    @Test
+    fun `codeLength reaches AwaitingInput on either channel`() = runTest {
+        val transport = FakeTransport(created(Fixtures.pendingSms()), ok(Fixtures.verified()))
+        val handle = engine(transport).start("+37112345678", DeliveryMethod.SMS, null, null)
+        handle.submit("123456")
+
+        val awaiting = handle.states.toList()[1] as VerificationState.AwaitingInput
+        assertEquals(Fixtures.CODE_LENGTH, awaiting.sms?.codeLength)
+
+        val calloutTransport = FakeTransport(created(Fixtures.pendingCallout()), ok(Fixtures.verified("id", "callout")))
+        val calloutHandle = engine(calloutTransport).start("+37112345678", DeliveryMethod.CALLOUT, null, null)
+        calloutHandle.submit("123456")
+        val calloutAwaiting = calloutHandle.states.toList()[1] as VerificationState.AwaitingInput
+        assertEquals(Fixtures.CODE_LENGTH, calloutAwaiting.callout?.codeLength)
+    }
+
+    // ------------------------------------------------------------------- cooldown
+
+    @Test
+    fun `a cooldown on create is terminal, never retried, and carries retry-after`() = runTest {
+        val transport = FakeTransport(tooManyRequests(Fixtures.cooldown(), retryAfterSeconds = 17))
+        val handle = engine(transport).start("+37112345678", DeliveryMethod.SMS, null, null)
+
+        val states = handle.states.toList()
+
+        assertEquals(listOf("Starting", "Failed"), states.shape())
+        val error = ((states.last() as VerificationState.Failed).reason as FailureReason.Api).error
+        assertEquals(ApiErrorCode.DESTINATION_IN_COOLDOWN, error.known)
+        assertEquals(17, error.retryAfterSeconds)
+        assertEquals(1, transport.postCount)
+        assertEquals(1, transport.requests.size)
+    }
+
+    @Test
+    fun `a cooldown with no Retry-After header still terminates cleanly`() = runTest {
+        val transport = FakeTransport(tooManyRequests(Fixtures.cooldown()))
+        val handle = engine(transport).start("+37112345678", DeliveryMethod.SMS, null, null)
+
+        val error = ((handle.states.toList().last() as VerificationState.Failed).reason as FailureReason.Api).error
+        assertNull(error.retryAfterSeconds)
     }
 
     private companion object {

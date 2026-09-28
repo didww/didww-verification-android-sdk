@@ -23,7 +23,7 @@ internal object AndroidClock : Clock {
  * The decisive problem is not clock *skew* — a steady offset would merely make the
  * deadline slightly early or late. It is clock *jumps*: an NTP correction or a user
  * changing the date moves `currentTimeMillis()` by minutes or hours mid-verification, and
- * against a two-minute deadline that either expires the verification instantly or never
+ * against a short deadline that either expires the verification instantly or never
  * expires it at all. `elapsedRealtime()` counts since boot and is immune to both.
  *
  * This is a UX affordance layered over an authoritative server: reaching zero locally

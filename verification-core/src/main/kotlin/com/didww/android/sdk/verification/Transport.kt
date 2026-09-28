@@ -13,7 +13,20 @@ public class HttpRequest(
 public class HttpResponse(
     public val statusCode: Int,
     public val body: String,
-)
+) {
+    /** Whole seconds from a `Retry-After` header, or `null` when the response sent none. */
+    public var retryAfterSeconds: Int? = null
+        private set
+
+    /** Adds [retryAfterSeconds] without touching the primary constructor above — a binary break otherwise; see [SmsInfo]'s doc. */
+    public constructor(
+        statusCode: Int,
+        body: String,
+        retryAfterSeconds: Int?,
+    ) : this(statusCode, body) {
+        this.retryAfterSeconds = retryAfterSeconds
+    }
+}
 
 /**
  * The seam every network call in this SDK goes through.

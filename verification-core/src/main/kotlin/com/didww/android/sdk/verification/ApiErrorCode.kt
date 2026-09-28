@@ -7,7 +7,7 @@ package com.didww.android.sdk.verification
  * standing principle that knowing a slug before it can arrive costs nothing and saves an
  * SDK release when it does.
  *
- * ### Twenty-eight slugs, and why the list is not longer
+ * ### Twenty-nine slugs, and why the list is not longer
  *
  * These are the ones reachable on *this* wire. DIDWW's error vocabulary is shared
  * with other product surfaces whose slugs can never appear on a verification response, so a
@@ -49,6 +49,7 @@ public enum class ApiErrorCode(public val slug: String) {
     BALANCE_INSUFFICIENT("balance_insufficient"),
     VALIDATION_FAILED("validation_failed"),
     INTERNAL_ERROR("internal_error"),
+    DESTINATION_IN_COOLDOWN("destination_in_cooldown"),
 
     // Persisted outcome codes, surfaced as `error_code` on a finished verification.
     DISPATCH_FAILED("dispatch_failed"),

@@ -80,7 +80,8 @@ internal class HttpUrlTransport(private val config: Config) : Transport {
         val stream: InputStream? =
             if (statusCode in SUCCESS_RANGE) connection.inputStream else connection.errorStream
         val body = stream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }.orEmpty()
-        return HttpResponse(statusCode, body)
+        val retryAfterSeconds = parseRetryAfterSeconds(connection.getHeaderField("Retry-After"))
+        return HttpResponse(statusCode, body, retryAfterSeconds)
     }
 
     /**
@@ -97,3 +98,12 @@ internal class HttpUrlTransport(private val config: Config) : Transport {
         private val SUCCESS_RANGE = 200..299
     }
 }
+
+/**
+ * The server sends this as whole seconds, never an HTTP-date. [String.toIntOrNull] alone
+ * would also accept a sign (`"-5"`, `"+5"`), which is not a valid delay — restricting to
+ * digits first is what makes a negative or malformed header degrade to "no header" rather
+ * than a bogus wait time. `internal` rather than `private` so it is directly testable.
+ */
+internal fun parseRetryAfterSeconds(raw: String?): Int? =
+    raw?.trim()?.takeIf { it.isNotEmpty() && it.all(Char::isDigit) }?.toIntOrNull()
