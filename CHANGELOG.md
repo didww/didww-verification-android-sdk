@@ -6,6 +6,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html): from 1.0.0 onwards a breaking change
 to the public surface requires a major version. The three artifacts version together.
 
+## [Unreleased]
+
+### Added
+
+- **A `User-Agent: didww-verification-android/<version>` header on every request.**
+
 ## [1.0.0] — 2026-09
 
 First public release.
