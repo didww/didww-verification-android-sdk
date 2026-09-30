@@ -73,7 +73,7 @@ You also need, on the DIDWW side:
 // settings.gradle.kts — repositories { mavenCentral() }
 
 dependencies {
-    implementation("com.didww.android.sdk.verification:verification-all:1.0.0")
+    implementation("com.didww.android.sdk.verification:verification-all:1.1.0")
 }
 ```
 
@@ -283,14 +283,19 @@ for a response that carried no block at all.
 
 | | Carries |
 |---|---|
-| `AwaitingInput.sms` | `template` (the message with `{{CODE}}` still in it), `language`, `interceptionTimeoutSeconds` |
-| `AwaitingInput.callout` | `language` |
+| `AwaitingInput.sms` | `template` (the message with `{{CODE}}` still in it), `language`, `interceptionTimeoutSeconds`, `codeLength` |
+| `AwaitingInput.callout` | `language`, `codeLength` |
 
 `interceptionTimeoutSeconds` is **a budget for automatic capture, not a deadline**. It is how
 long an on-device listener is worth keeping armed; when it runs out the SDK stops listening and
 nothing else happens — the verification is still live, manual entry still works, and
 `expiresAtEpochMillis` remains the only thing that ends it. Show it if you want to tell the user
 when auto-fill will stop trying; never treat it as time remaining.
+
+`codeLength` is the digit length (4–8) the server generated this verification's code at, set
+per application. It is informational only: the SDK compiles in no length of its own, so
+`AwaitingInput.sms`/`.callout` are what tell you, not a constant (see
+[Automatic code capture](#automatic-code-capture)).
 
 ## Environments
 
@@ -405,6 +410,24 @@ is VerificationState.SetupError ->
 
 Treat it as a bug report against your own configuration, not as a message for the end user.
 
+### Cooldown (`429`) and `retryAfterSeconds`
+
+Starting a verification for the same application and destination within 30 seconds of a
+non-denied one is rejected with `429` and the slug `destination_in_cooldown`. It surfaces the
+same way as any other server rejection — `Failed` carrying `FailureReason.Api` — and this SDK
+never retries a `POST` automatically, on this slug or any other; retrying is always something
+your app decides to do, not something that happens for it.
+
+`ApiErrorItem.retryAfterSeconds` carries the server's `Retry-After` header, in whole seconds —
+`null` when the response carried no `Retry-After` header. Show it, or use it to decide when to
+let the user try again.
+
+```kotlin
+if (error.known == ApiErrorCode.DESTINATION_IN_COOLDOWN) {
+    showError("Please wait ${error.retryAfterSeconds ?: "a moment"} before trying again.")
+}
+```
+
 ## Rules worth knowing
 
 ### Collect once
@@ -479,7 +502,7 @@ user already had, so treat `NOT_READY_TO_REPORT` as "try again", never as a fail
 
 `AwaitingInput.expiresAtEpochMillis` is the server's deadline and the only one — the SDK
 compiles in no TTL. The countdown runs on elapsed time, because an NTP correction or a user
-changing the date moves the wall clock by hours mid-verification, which against a two-minute
+changing the date moves the wall clock by hours mid-verification, which against a short
 deadline is fatal in both directions.
 
 `Expired` may be emitted locally from that countdown as a UX affordance, but the **server stays

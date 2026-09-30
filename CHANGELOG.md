@@ -12,6 +12,30 @@ to the public surface requires a major version. The three artifacts version toge
 
 - **A `User-Agent: didww-verification-android/<version>` header on every request.**
 
+## [1.1.0] — 2026-10
+
+### Added
+
+- **`codeLength` on `SmsInfo` and `CalloutInfo`** — the digit length (4–8) the server generated
+  a verification's code at, set per application; always sent. It is `Int?`, not `Int`, only
+  because it is added through a secondary constructor on both types, so existing callers of
+  the primary constructor are unaffected and get `null` there.
+
+- **`destination_in_cooldown`** — a new `ApiErrorCode` slug. Starting a verification for the
+  same application and destination within 30 seconds of a non-denied one now returns `429`
+  with this code, never retried automatically.
+
+- **`ApiErrorItem.retryAfterSeconds`** — the server's `Retry-After` header, in whole seconds,
+  when it sent one; `null` otherwise. Added through a secondary constructor, on the same
+  binary-compatibility terms as `codeLength` above.
+
+### Changed
+
+- **The verification lifetime and the SMS interception budget are per application**, set on
+  the DIDWW account (60–600 seconds, default 300) rather than fixed. Both were already read
+  from the wire — `expiresAtEpochMillis` and `SmsInfo.interceptionTimeoutSeconds` — so no SDK
+  code changes; this is a note that a shorter or longer value than before is now expected.
+
 ## [1.0.0] — 2026-09
 
 First public release.

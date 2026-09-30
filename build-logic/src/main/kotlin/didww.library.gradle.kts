@@ -24,7 +24,7 @@ plugins {
 // to different versions is a support problem that cannot be undone once published, and these
 // modules are meaningless apart.
 group = "com.didww.android.sdk.verification"
-version = "1.0.0"
+version = "1.1.0"
 
 mavenPublishing {
     // AGP's own javadoc task embeds a Dokka that cannot resolve KDoc links across module

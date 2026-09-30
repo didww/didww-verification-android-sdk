@@ -91,8 +91,8 @@ declarations are the ones that encode a *decision*, and a decision is what is wo
 
 Each of these would be compiled-in verification policy, and none exists anywhere in the SDK:
 
-- **Code length.** The server's choice — six digits today. The extractor captures `(\d+)`,
-  which asserts a character class and nothing else.
+- **Code length.** The server's choice, set per application — 4 to 8 digits. The extractor
+  captures `(\d+)`, which asserts a character class and nothing else.
 - **Maximum attempts.** Never counted locally. Whether another try is allowed is the server's
   decision and it says so by returning `too_many_attempts`, which is terminal.
 - **Verification TTL.** `expires_at` arrives on the wire and is the only deadline.
