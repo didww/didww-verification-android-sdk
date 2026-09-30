@@ -42,6 +42,7 @@ public object Fixtures {
         template: String? = TEMPLATE,
         expiresAt: String? = "2030-01-01T00:02:00Z",
         appHash: String? = null,
+        autofillType: String = "app_hash",
         interceptionTimeout: Int? = INTERCEPTION_TIMEOUT,
         language: String? = LANGUAGE,
         codeLength: Int? = CODE_LENGTH,
@@ -63,7 +64,7 @@ public object Fixtures {
     }${
         codeLength?.let { ",\"code_length\":$it" } ?: ""
     }${
-        appHash?.let { ",\"app_hash\":\"$it\"" } ?: ""
+        appHash?.let { ",\"autofill\":{\"type\":\"$autofillType\",\"value\":\"$it\"}" } ?: ""
     }}
         }}
     """.trimIndent()

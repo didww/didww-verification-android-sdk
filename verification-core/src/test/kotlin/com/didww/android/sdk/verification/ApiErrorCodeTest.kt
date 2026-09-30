@@ -8,7 +8,7 @@ import org.junit.Test
 class ApiErrorCodeTest {
 
     /**
-     * Exactly twenty-nine slugs are reachable on this wire. DIDWW's error vocabulary as a
+     * Exactly thirty slugs are reachable on this wire. DIDWW's error vocabulary as a
      * whole is larger, but the rest belong to other product surfaces and can never appear
      * on a verification response.
      *
@@ -16,14 +16,15 @@ class ApiErrorCodeTest {
      * mistake — fails loudly instead of shipping unreachable cases.
      */
     @Test
-    fun `enumerates exactly the twenty-nine slugs reachable on this wire`() {
-        assertEquals(29, ApiErrorCode.entries.size)
+    fun `enumerates exactly the thirty slugs reachable on this wire`() {
+        assertEquals(30, ApiErrorCode.entries.size)
 
         val expected = setOf(
             "destination_blank", "destination_invalid",
             "delivery_method_blank", "delivery_method_inclusion", "delivery_method_invalid",
             "languages_invalid", "app_hash_invalid",
             "code_blank", "code_value_present",
+            "autofill_invalid",
             "destination_not_supported_for_channel", "code_invalid",
             "already_verified", "not_ready_to_report",
             "parameter_missing", "not_found", "unauthorized", "balance_insufficient",

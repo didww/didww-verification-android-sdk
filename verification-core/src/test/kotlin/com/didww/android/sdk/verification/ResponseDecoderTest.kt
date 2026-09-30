@@ -3,6 +3,8 @@ package com.didww.android.sdk.verification
 import com.didww.android.sdk.verification.internal.DecodeException
 import com.didww.android.sdk.verification.internal.ResponseDecoder
 import com.didww.android.sdk.verification.testing.Fixtures
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -162,7 +164,7 @@ class ResponseDecoderTest {
     @Test
     fun `reads the channel block by the delivery method's own name`() {
         val payload = ResponseDecoder.verification(Fixtures.pendingSms(appHash = "FA+9qCX9VSu"))
-        assertEquals("FA+9qCX9VSu", payload.channelBlock?.get("app_hash")?.toString()?.trim('"'))
+        assertEquals("FA+9qCX9VSu", payload.channelBlock?.get("autofill")?.jsonObject?.get("value")?.jsonPrimitive?.content)
     }
 
     @Test
