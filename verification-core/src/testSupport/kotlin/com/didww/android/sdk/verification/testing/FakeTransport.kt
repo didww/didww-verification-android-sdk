@@ -15,7 +15,12 @@ import kotlinx.coroutines.CompletableDeferred
 public class FakeTransport(private vararg val script: Reply) : Transport {
 
     public sealed interface Reply {
-        public class Http(public val statusCode: Int, public val body: String) : Reply
+        public class Http(
+            public val statusCode: Int,
+            public val body: String,
+            /** Scripted `Retry-After` header, whole seconds — `null` to send none. */
+            public val retryAfterSeconds: Int? = null,
+        ) : Reply
 
         /** The request fails at the transport layer, as a dropped connection would. */
         public class Failure(public val message: String) : Reply
@@ -44,7 +49,7 @@ public class FakeTransport(private vararg val script: Reply) : Transport {
                 "FakeTransport has no scripted reply #$index for ${request.method} ${request.url}. " +
                     "An unscripted request is a test bug, not a pass.",
             )
-            is Reply.Http -> HttpResponse(reply.statusCode, reply.body)
+            is Reply.Http -> HttpResponse(reply.statusCode, reply.body, reply.retryAfterSeconds)
             is Reply.Failure -> throw TransportException(reply.message)
             // Suspends until cancelled. Completing normally would let a cancellation test
             // pass without ever cancelling anything.
@@ -58,3 +63,7 @@ public fun ok(body: String): FakeTransport.Reply = FakeTransport.Reply.Http(200,
 public fun created(body: String): FakeTransport.Reply = FakeTransport.Reply.Http(201, body)
 
 public fun unprocessable(body: String): FakeTransport.Reply = FakeTransport.Reply.Http(422, body)
+
+/** `429`, optionally carrying a scripted `Retry-After` — see [FakeTransport.Reply.Http]. */
+public fun tooManyRequests(body: String, retryAfterSeconds: Int? = null): FakeTransport.Reply =
+    FakeTransport.Reply.Http(429, body, retryAfterSeconds)

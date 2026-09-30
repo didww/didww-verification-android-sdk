@@ -31,8 +31,8 @@ internal object SmsCodeExtractor {
         // hash is appended after it, and carriers add text of their own. An anchored
         // match fails on every real message.
         //
-        // The capture is `(\d+)`, not `(\d{4,10})`. Code length is server-owned
-        // (`CODE_LENGTH = 6` today) and is exactly the class of value that must never be
+        // The capture is `(\d+)`, not `(\d{4,10})`. Code length is server-owned and set
+        // per application (4 to 8 digits) — exactly the class of value that must never be
         // compiled into a client. `\d+` asserts only a character class, which is true by
         // construction. It is also narrower than the greedy `(.+)` other SDKs use, which
         // would swallow the appended app hash into the code.

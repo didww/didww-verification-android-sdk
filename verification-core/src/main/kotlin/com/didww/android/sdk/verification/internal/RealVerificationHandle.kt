@@ -251,12 +251,13 @@ internal class RealVerificationHandle(
                     template = payload.template,
                     language = payload.language,
                     interceptionTimeoutSeconds = payload.interceptionTimeoutSeconds,
+                    codeLength = payload.codeLength,
                 )
             } else {
                 null
             },
             callout = if (effectiveMethod == DeliveryMethod.CALLOUT) {
-                CalloutInfo(language = payload.language)
+                CalloutInfo(language = payload.language, codeLength = payload.codeLength)
             } else {
                 null
             },
@@ -304,8 +305,13 @@ internal class RealVerificationHandle(
                         ),
                     ),
                 )
-            return if (first.known in RETRYABLE) Exchange.Retryable(first) else {
-                Exchange.Terminal(terminalStateFor(first))
+            // The header lives on the transport response, not the JSON body, so it is
+            // attached here rather than in ResponseDecoder.errors.
+            val error = response.retryAfterSeconds?.let {
+                ApiErrorItem(first.code, first.detail, first.known, it)
+            } ?: first
+            return if (error.known in RETRYABLE) Exchange.Retryable(error) else {
+                Exchange.Terminal(terminalStateFor(error))
             }
         }
 

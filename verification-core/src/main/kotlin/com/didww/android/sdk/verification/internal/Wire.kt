@@ -16,8 +16,9 @@ import kotlinx.serialization.json.jsonObject
  * ```json
  * { "data": { "id", "destination", "delivery_method", "fee", "status",
  *             "error_code", "error_detail", "expires_at",
- *             "sms": { "template": "...", "language": "de-DE", "interception_timeout": 120 },
- *             "callout": { "language": "pt-BR" } } }
+ *             "sms": { "template": "...", "language": "de-DE", "interception_timeout": 300,
+ *                      "code_length": 6 },
+ *             "callout": { "language": "pt-BR", "code_length": 6 } } }
  * ```
  *
  * At most one channel block is present, keyed by `delivery_method`, and a channel that has
@@ -58,6 +59,18 @@ internal class VerificationPayload(
      */
     val interceptionTimeoutSeconds: Int?
         get() = channelBlock?.stringOrNull("interception_timeout")?.toIntOrNull()
+
+    /**
+     * The digit length (4–8) the server generated this verification's code at — set per
+     * application and always present on the wire.
+     *
+     * Read the same tolerant way as [interceptionTimeoutSeconds]: `null` when absent or
+     * unreadable rather than a decode failure, on the same terms as that field and for the
+     * same reason — a field read through an assumption about its JSON type must not take
+     * the whole response down with it the day the assumption is wrong.
+     */
+    val codeLength: Int?
+        get() = channelBlock?.stringOrNull("code_length")?.toIntOrNull()
 }
 
 internal object ResponseDecoder {

@@ -66,7 +66,7 @@ class ResponseDecoderTest {
 
     @Test
     fun `interception_timeout is a JSON number on the wire, and a quoted one still reads`() {
-        // The server sends `"interception_timeout": 120` — a NUMBER. Reading the primitive's
+        // The server sends `"interception_timeout"` as a NUMBER. Reading the primitive's
         // raw content accepts a quoted one too, exactly as `fee` does, so neither a
         // serializer change nor a hand-written fixture can silently zero out the budget.
         val asNumber = Fixtures.pendingSms()
@@ -92,8 +92,33 @@ class ResponseDecoderTest {
     @Test
     fun `a non-numeric interception timeout yields null rather than throwing`() {
         // It is displayed, never enforced against, so an unreadable value must not be fatal.
-        val body = Fixtures.pendingSms().replace("\"interception_timeout\":120", "\"interception_timeout\":\"soon\"")
+        // Interpolated from the constant, not a bare literal — a stale fixture must not
+        // silently stop this test from asserting anything, as it would with a hardcoded 120.
+        val body = Fixtures.pendingSms().replace(
+            "\"interception_timeout\":${Fixtures.INTERCEPTION_TIMEOUT}",
+            "\"interception_timeout\":\"soon\"",
+        )
         assertNull(ResponseDecoder.verification(body).interceptionTimeoutSeconds)
+    }
+
+    @Test
+    fun `decodes code_length on either channel, and tolerates its absence`() {
+        // Always sent, but read as tolerantly as interception_timeout: an absent or
+        // malformed value must decode to null, not a decode failure, on either channel.
+        assertEquals(
+            Fixtures.CODE_LENGTH,
+            ResponseDecoder.verification(Fixtures.pendingSms()).codeLength,
+        )
+        assertEquals(
+            Fixtures.CODE_LENGTH,
+            ResponseDecoder.verification(Fixtures.pendingCallout()).codeLength,
+        )
+        assertNull(
+            ResponseDecoder.verification(Fixtures.pendingSms(codeLength = null)).codeLength,
+        )
+        assertNull(
+            ResponseDecoder.verification(Fixtures.pendingCallout(codeLength = null)).codeLength,
+        )
     }
 
     @Test

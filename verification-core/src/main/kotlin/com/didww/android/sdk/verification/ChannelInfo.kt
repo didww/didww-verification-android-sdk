@@ -54,9 +54,34 @@ public class SmsInfo(
      */
     public val interceptionTimeoutSeconds: Int? = null,
 ) {
+    /**
+     * The digit length (4–8) the server generated this verification's code at, set per
+     * application — always sent, in the same channel block as [language] and
+     * [interceptionTimeoutSeconds] above. It is `Int?`, not `Int`, only because the
+     * primary constructor above predates this field and has no value to give it. The
+     * server always sends it; `null` only if a response lacks it, or for an instance
+     * built through the primary (1.0.0) constructor.
+     *
+     * Set through the secondary constructor below, never the primary one above: extending
+     * the primary constructor's parameter list is the binary break this class's doc warns
+     * about, so a field added after 1.0.0 grows this way instead.
+     */
+    public var codeLength: Int? = null
+        private set
+
+    /** Adds [codeLength] without touching the primary constructor above — see its doc. */
+    public constructor(
+        template: String? = null,
+        language: String? = null,
+        interceptionTimeoutSeconds: Int? = null,
+        codeLength: Int? = null,
+    ) : this(template, language, interceptionTimeoutSeconds) {
+        this.codeLength = codeLength
+    }
+
     override fun toString(): String =
         "SmsInfo(template=${template?.let { "\"$it\"" }}, language=$language, " +
-            "interceptionTimeoutSeconds=$interceptionTimeoutSeconds)"
+            "interceptionTimeoutSeconds=$interceptionTimeoutSeconds, codeLength=$codeLength)"
 }
 
 /**
@@ -75,5 +100,17 @@ public class CalloutInfo(
      */
     public val language: String? = null,
 ) {
-    override fun toString(): String = "CalloutInfo(language=$language)"
+    /** See [SmsInfo.codeLength] — same field, same server-owned value, same growth pattern. */
+    public var codeLength: Int? = null
+        private set
+
+    /** Adds [codeLength] without touching the primary constructor above — see its doc. */
+    public constructor(
+        language: String? = null,
+        codeLength: Int? = null,
+    ) : this(language) {
+        this.codeLength = codeLength
+    }
+
+    override fun toString(): String = "CalloutInfo(language=$language, codeLength=$codeLength)"
 }

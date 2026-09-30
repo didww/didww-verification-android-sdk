@@ -24,9 +24,8 @@ public object Fixtures {
     public fun deliveredBody(code: String, appHash: String, template: String = TEMPLATE): String =
         "<#> " + template.replace("{{CODE}}", code) + " " + appHash
 
-    /** A live verification awaiting input. `fee` is rendered as a string, as Alba does. */
     /** Seconds the API grants for on-device capture. A fixed budget, not a countdown. */
-    public const val INTERCEPTION_TIMEOUT: Int = 120
+    public const val INTERCEPTION_TIMEOUT: Int = 300
 
     /**
      * The tag the API says it chose. `en-US` is its fallback, so it is what an unmatched
@@ -34,6 +33,10 @@ public object Fixtures {
      */
     public const val LANGUAGE: String = "en-US"
 
+    /** The digit length the API generated this verification's code at (4–8), server-owned. */
+    public const val CODE_LENGTH: Int = 6
+
+    /** A live verification awaiting input. `fee` is rendered as a string, as Alba does. */
     public fun pendingSms(
         id: String = ID,
         template: String? = TEMPLATE,
@@ -41,6 +44,7 @@ public object Fixtures {
         appHash: String? = null,
         interceptionTimeout: Int? = INTERCEPTION_TIMEOUT,
         language: String? = LANGUAGE,
+        codeLength: Int? = CODE_LENGTH,
         fee: String = "\"0.0450\"",
     ): String = """
         {"data":{
@@ -57,32 +61,42 @@ public object Fixtures {
     }${
         interceptionTimeout?.let { ",\"interception_timeout\":$it" } ?: ""
     }${
+        codeLength?.let { ",\"code_length\":$it" } ?: ""
+    }${
         appHash?.let { ",\"app_hash\":\"$it\"" } ?: ""
     }}
         }}
     """.trimIndent()
 
     /**
-     * A live callout verification. The block carries `language` and nothing else — that is
+     * A live callout verification. The block carries `language` and `code_length` — that is
      * the whole of the API's callout block at this version.
      */
     public fun pendingCallout(
         id: String = ID,
         expiresAt: String? = "2030-01-01T00:02:00Z",
         language: String? = LANGUAGE,
-    ): String = """
-        {"data":{
-          "id":"$id",
-          "destination":"$DESTINATION",
-          "delivery_method":"callout",
-          "fee":"0.0450",
-          "status":"pending",
-          "error_code":null,
-          "error_detail":null,
-          ${expiresAt?.let { "\"expires_at\":\"$it\"," } ?: ""}
-          "callout":{${language?.let { "\"language\":\"$it\"" } ?: ""}}
-        }}
-    """.trimIndent()
+        codeLength: Int? = CODE_LENGTH,
+    ): String {
+        // Joined rather than chained with a leading comma, since no field here is unconditional.
+        val fields = listOfNotNull(
+            language?.let { "\"language\":\"$it\"" },
+            codeLength?.let { "\"code_length\":$it" },
+        ).joinToString(",")
+        return """
+            {"data":{
+              "id":"$id",
+              "destination":"$DESTINATION",
+              "delivery_method":"callout",
+              "fee":"0.0450",
+              "status":"pending",
+              "error_code":null,
+              "error_detail":null,
+              ${expiresAt?.let { "\"expires_at\":\"$it\"," } ?: ""}
+              "callout":{$fields}
+            }}
+        """.trimIndent()
+    }
 
     public fun pending(method: String, id: String = ID, expiresAt: String? = "2030-01-01T00:02:00Z"): String = """
         {"data":{
@@ -136,4 +150,12 @@ public object Fixtures {
         """{"errors":[${codes.joinToString(",") { """{"code":"${it.first}","detail":"${it.second}"}""" }}]}"""
 
     public fun error(code: String, detail: String = "detail for $code"): String = errors(code to detail)
+
+    /**
+     * `429`, `destination_in_cooldown` — a start too soon after a non-denied one for the
+     * same application and destination. The `Retry-After` header itself is not part of this
+     * body; script it separately, e.g. via `tooManyRequests`.
+     */
+    public fun cooldown(detail: String = "please wait before starting another verification"): String =
+        error("destination_in_cooldown", detail)
 }

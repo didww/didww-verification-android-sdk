@@ -96,9 +96,10 @@ class SmsCodeExtractorTest {
 
     @Test
     fun `imposes no code length, because length is the server's to choose`() {
-        assertEquals("1234", SmsCodeExtractor.extract("Code {{CODE}}", "Code 1234"))
-        assertEquals("123456", SmsCodeExtractor.extract("Code {{CODE}}", "Code 123456"))
-        assertEquals("1234567890123", SmsCodeExtractor.extract("Code {{CODE}}", "Code 1234567890123"))
+        // The server picks 4 to 8 per application; the last case is well past that on purpose.
+        for (code in listOf("1234", "12345", "123456", "1234567", "12345678", "1234567890123")) {
+            assertEquals(code, SmsCodeExtractor.extract("Code {{CODE}}", "Code $code"))
+        }
     }
 
     @Test
