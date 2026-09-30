@@ -106,6 +106,22 @@ class CalloutVerificationTest {
     }
 
     @Test
+    fun `custom travels at the top level of data, alongside the callout block`() = runTest {
+        val transport = script()
+        val handle = callout(transport).start(
+            "+37112345678",
+            CalloutOptions(languages = listOf("pt-BR")),
+            custom = "screen=checkout",
+        )
+        handle.submit("123456")
+        handle.states.toList()
+
+        val create = transport.requests[0].body!!
+        assertTrue(create, create.contains("\"custom\":\"screen=checkout\""))
+        assertTrue(create, create.contains("\"callout\":{\"languages\":[\"pt-BR\"]}"))
+    }
+
+    @Test
     fun `no options, or an empty list, sends no callout block at all`() = runTest {
         // An empty block says nothing the absent one does not, so it is not sent. This is
         // also what keeps `start(destination)` byte-identical to what it sent before the

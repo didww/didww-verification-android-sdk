@@ -59,6 +59,7 @@ internal class RealVerificationHandle(
     private val transport: Transport,
     private val requests: RequestFactory,
     private val clock: Clock,
+    private val custom: String? = null,
 ) : VerificationHandle {
 
     private class Submission(val value: String, val automatic: Boolean)
@@ -108,7 +109,7 @@ internal class RealVerificationHandle(
         send(VerificationState.Starting)
 
         val opening = when (origin) {
-            Origin.CREATE -> requests.create(destination, method, requestChannelBlock)
+            Origin.CREATE -> requests.create(destination, method, requestChannelBlock, custom)
             Origin.RESUME -> requests.showByNumber(destination)
         }
 

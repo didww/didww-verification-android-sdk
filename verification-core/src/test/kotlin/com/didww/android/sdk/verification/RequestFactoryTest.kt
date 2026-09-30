@@ -89,6 +89,25 @@ class RequestFactoryTest {
     }
 
     @Test
+    fun `create puts custom in the top-level data object and omits it when null`() {
+        val with = factory.create("+37112345678", DeliveryMethod.SMS, null, "ctx: 42").body!!
+        assertTrue(with.contains("\"data\":{"))
+        assertTrue(with.contains("\"custom\":\"ctx: 42\""))
+        assertTrue(!with.contains("\"sms\":"))
+
+        val nested = factory.create(
+            "+37112345678",
+            DeliveryMethod.SMS,
+            buildJsonObject { put("app_hash", "FA+9qCX9VSu") },
+            "x",
+        ).body!!
+        assertTrue(nested.contains("\"sms\":{\"app_hash\":\"FA+9qCX9VSu\"}"))
+        assertTrue(nested.contains("\"custom\":\"x\""))
+
+        assertTrue(!factory.create("+37112345678", DeliveryMethod.SMS, null).body!!.contains("custom"))
+    }
+
+    @Test
     fun `every channel reports its code under code, named by delivery method`() {
         // The method travels with the report and is validated server-side against the
         // verification, so it is not decoration: reporting under the wrong one is refused.

@@ -7,7 +7,7 @@ package com.didww.android.sdk.verification
  * standing principle that knowing a slug before it can arrive costs nothing and saves an
  * SDK release when it does.
  *
- * ### Twenty-nine slugs, and why the list is not longer
+ * ### Thirty slugs, and why the list is not longer
  *
  * These are the ones reachable on *this* wire. DIDWW's error vocabulary is shared
  * with other product surfaces whose slugs can never appear on a verification response, so a
@@ -33,6 +33,7 @@ public enum class ApiErrorCode(public val slug: String) {
     DELIVERY_METHOD_INVALID("delivery_method_invalid"),
     LANGUAGES_INVALID("languages_invalid"),
     APP_HASH_INVALID("app_hash_invalid"),
+    CUSTOM_TOO_LONG("custom_too_long"),
     CODE_BLANK("code_blank"),
     CODE_VALUE_PRESENT("code_value_present"),
 

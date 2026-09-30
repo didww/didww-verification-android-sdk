@@ -6,6 +6,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html): from 1.0.0 onwards a breaking change
 to the public surface requires a major version. The three artifacts version together.
 
+## [1.2.0] — Unreleased
+
+### Added
+
+- **`custom` on `start`** — an optional string (at most 4096 characters) sent with the create
+  request as the top-level `custom` and forwarded to your callback server, so it can decide
+  whether to allow the verification using context from the app. It is not returned in any
+  response. Available as a new overload on `SmsVerification.start`,
+  `CalloutVerification.start` and `DidwwVerification.start`; existing signatures are unchanged. The value is sent from the device, so the callback server
+  must validate it.
+
+- **`custom_too_long`** — a new `ApiErrorCode` slug, returned when `custom` exceeds 4096
+  characters.
+
 ## [1.1.0] — 2026-10
 
 ### Added

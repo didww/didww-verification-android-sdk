@@ -235,6 +235,20 @@ That is deliberate. The server reads only the block matching `delivery_method` a
 `201` with its defaults, so the request would silently not be the one you wrote — a mistake
 better caught at the call site than discovered from a message arriving in the wrong language.
 
+#### Custom data for your callback server
+
+`custom` is an optional string (at most 4096 characters) passed alongside the options and
+forwarded to your callback server, so it can allow or deny the verification using context from
+the app. It is not returned in any response. Longer values are rejected as
+`ApiErrorCode.CUSTOM_TOO_LONG`.
+
+```kotlin
+didww.start(number, DeliveryMethod.SMS, custom = "screen=checkout")
+smsVerification.start(number, SmsOptions(languages = listOf("de-DE")), custom = "screen=checkout")
+```
+
+It is sent from the device, so the callback server must validate it and never trust it.
+
 #### Languages
 
 `languages` is a list of BCP-47 tags, most preferred first — the message template for SMS, the

@@ -65,7 +65,19 @@ public class VerificationEngine internal constructor(
         method: DeliveryMethod,
         channelBlock: JsonObject?,
         interceptorFactory: CodeInterceptorFactory?,
-    ): VerificationHandle = handle(destination, method, Origin.CREATE, channelBlock, interceptorFactory)
+    ): VerificationHandle = start(destination, method, channelBlock, interceptorFactory, null)
+
+    /**
+     * As above, also sending [custom] as the top-level `custom` of the create request. The
+     * value is supplied by the device, so the callback server must validate it.
+     */
+    public fun start(
+        destination: String,
+        method: DeliveryMethod,
+        channelBlock: JsonObject?,
+        interceptorFactory: CodeInterceptorFactory?,
+        custom: String?,
+    ): VerificationHandle = handle(destination, method, Origin.CREATE, channelBlock, interceptorFactory, custom)
 
     /**
      * Reattaches to the verification the API currently holds for [destination], instead of
@@ -98,6 +110,7 @@ public class VerificationEngine internal constructor(
         origin: Origin,
         channelBlock: JsonObject?,
         interceptorFactory: CodeInterceptorFactory?,
+        custom: String? = null,
     ): VerificationHandle {
         val handle = RealVerificationHandle(
             destination = destination,
@@ -108,6 +121,7 @@ public class VerificationEngine internal constructor(
             transport = transport,
             requests = requests,
             clock = clock,
+            custom = custom,
         )
         // Before any request by construction, since neither entrypoint does I/O. Resuming
         // registers on the same terms as starting: two live collections driving one
