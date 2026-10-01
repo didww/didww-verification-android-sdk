@@ -6,15 +6,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html): from 1.0.0 onwards a breaking change
 to the public surface requires a major version. The three artifacts version together.
 
-## [Unreleased]
+## [1.1.0] — 2026-10
 
 ### Added
 
 - **A `User-Agent: didww-verification-android/<version>` header on every request.**
-
-## [1.1.0] — 2026-10
-
-### Added
 
 - **`codeLength` on `SmsInfo` and `CalloutInfo`** — the digit length (4–8) the server generated
   a verification's code at, set per application; always sent. It is `Int?`, not `Int`, only
