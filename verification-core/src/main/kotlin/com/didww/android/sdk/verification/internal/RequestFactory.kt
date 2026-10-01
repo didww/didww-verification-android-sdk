@@ -81,11 +81,13 @@ internal class RequestFactory(
     private fun headers(json: Boolean): Map<String, String> = buildMap {
         put("Authorization", auth.headerValue)
         put("Accept", CONTENT_TYPE_JSON)
+        put("User-Agent", "$USER_AGENT_PREFIX/$SDK_VERSION")
         if (json) put("Content-Type", CONTENT_TYPE_JSON)
     }
 
     private companion object {
         private const val API_PREFIX = "/api/v1"
         private const val CONTENT_TYPE_JSON = "application/json"
+        private const val USER_AGENT_PREFIX = "didww-verification-android"
     }
 }

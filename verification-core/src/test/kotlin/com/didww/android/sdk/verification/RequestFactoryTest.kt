@@ -1,6 +1,7 @@
 package com.didww.android.sdk.verification
 
 import com.didww.android.sdk.verification.internal.RequestFactory
+import com.didww.android.sdk.verification.internal.SDK_VERSION
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
@@ -118,6 +119,14 @@ class RequestFactoryTest {
         assertEquals(
             "some-rather-long-key:some-rather-long-secret",
             String(android.util.Base64.decode(header.removePrefix("Basic "), android.util.Base64.DEFAULT)),
+        )
+    }
+
+    @Test
+    fun `every request carries a User-Agent naming the sdk and its version`() {
+        assertEquals(
+            "didww-verification-android/$SDK_VERSION",
+            factory.show("id").headers["User-Agent"],
         )
     }
 
