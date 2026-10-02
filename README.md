@@ -80,8 +80,9 @@ dependencies {
 Pick the artifact that matches what you send — see [Artifacts](#artifacts) for why the split
 exists and what it saves you.
 
-**Version 1.0.0.** From here on the public surface is stable: a breaking change to it requires a
-major version. The three artifacts version together, so they are always upgraded as a set.
+**Version 1.1.0.** The public surface has been stable since 1.0.0: a breaking change to it
+requires a major version. The three artifacts version together, so they are always upgraded as a
+set.
 
 ## Quick start
 
