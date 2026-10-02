@@ -315,12 +315,12 @@ To see it, you need all of:
 - a **real handset** with Google Play services (an emulator image without them cannot receive the
   Retriever broadcast),
 - a **real SMS** actually delivered — the raw state log will show the create response's `sms`
-  block, and an `app_hash` in it that matches [§7](#7-the-sms-retriever-app-hash) means the
-  message will carry the hash,
+  block, and an `autofill` of type `app_hash` in it whose `value` matches
+  [§7](#7-the-sms-retriever-app-hash) means the message will carry the hash,
 - the app **installed from the same build** whose hash you read in §7. Re-signing changes the
   hash.
 
-If the response carries no `app_hash`, the Retriever is never armed, Play services is never
+If the response carries no `app_hash` autofill, the Retriever is never armed, Play services is never
 touched, and the code is typed by hand. That is not a failure — manual entry is live from the
 first moment either way.
 
@@ -355,7 +355,7 @@ The SDK sends this value on every SMS verification, computed the same way, and t
 response echoes back whatever was stored against the verification. It is shown here because SMS
 Retriever failure is completely silent on the device: a wrong hash means the message is simply
 never delivered to the app, with no error, no callback and no log line. So when auto-capture does
-not fire, the first thing to check is whether the hash on this screen matches the `app_hash` in
+not fire, the first thing to check is whether the hash on this screen matches the `autofill` value in
 the raw state log's create response.
 
 ## 8. Known build warnings

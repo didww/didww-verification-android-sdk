@@ -85,7 +85,7 @@ declarations are the ones that encode a *decision*, and a decision is what is wo
 | `MILLIS_PER_SECOND` | `1_000L` | `Iso8601` | Unit conversion. |
 | `HASHED_BYTES` | `9` | `AppHash` | Google's SMS Retriever protocol constant: the digest is truncated to nine bytes before base64. Theirs, not ours. |
 | `BASE64_CHARS` | `11` | `AppHash` | Google's protocol constant: the app hash appended to a message is exactly eleven characters. |
-| `FORMAT` | app-hash regex | `AppHash` | The alphabet and length the API accepts for `app_hash`. Not a policy value — a shape check on something we compute, so a malformed hash is dropped rather than failing the verification. |
+| `FORMAT` | app-hash regex | `AppHash` | The alphabet and length the API accepts for an `app_hash` autofill value. Not a policy value — a shape check on something we compute, so a malformed hash is dropped rather than failing the verification. |
 
 ### Deliberately absent
 

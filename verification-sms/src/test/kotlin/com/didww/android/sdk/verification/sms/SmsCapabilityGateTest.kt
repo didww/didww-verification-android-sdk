@@ -94,7 +94,9 @@ class SmsCapabilityGateTest {
         handle.submit("123456")
         handle.states.toList()
 
-        assertTrue(transport.requests.first().body!!.contains("\"app_hash\""))
+        val body = transport.requests.first().body!!
+        val ourHash = AppHash.compute(app)!!
+        assertTrue(body.contains("\"autofill\":{\"type\":\"app_hash\",\"value\":\"$ourHash\"}"))
     }
 
     @Test
@@ -103,6 +105,20 @@ class SmsCapabilityGateTest {
         // carry our hash and the dispatcher will not append it.
         val transport = FakeTransport(
             created(Fixtures.pendingSms(appHash = "NOTOURHASH")),
+            ok(Fixtures.verified()),
+        )
+        val handle = sms(transport).start("+37112345678")
+        handle.submit("123456")
+        handle.states.toList()
+
+        assertTrue(retrieverReceivers().isEmpty())
+    }
+
+    @Test
+    fun `an echo of our hash under another autofill type keeps the gate closed`() = runTest {
+        // Only an app_hash autofill makes the dispatcher append the Retriever hash.
+        val transport = FakeTransport(
+            created(Fixtures.pendingSms(appHash = AppHash.compute(app)!!, autofillType = "none")),
             ok(Fixtures.verified()),
         )
         val handle = sms(transport).start("+37112345678")
@@ -170,6 +186,18 @@ class SmsCapabilityGateTest {
             "teardown must run when the flow completes, not only when it is cancelled",
             retrieverReceivers().isEmpty(),
         )
+    }
+
+    @Test
+    fun `a resumed verification whose echo matches our hash arms the Retriever`() = runTest {
+        val transport = FakeTransport(ok(Fixtures.pendingSms(appHash = AppHash.compute(app)!!)))
+        val handle = sms(transport).resume("+37112345678")
+
+        val job = launch { handle.states.toList() }
+        runCurrent()
+
+        assertEquals(1, retrieverReceivers().size)
+        job.cancel()
     }
 
     private fun successStatus() = com.google.android.gms.common.api.Status(

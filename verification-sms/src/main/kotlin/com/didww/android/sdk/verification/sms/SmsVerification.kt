@@ -15,8 +15,8 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonObject
 
 /**
  * Verification by SMS, usable on its own — a host that only ever sends SMS can depend on
@@ -76,7 +76,12 @@ public class SmsVerification @DidwwInternalApi public constructor(
             options?.languages?.takeIf { it.isNotEmpty() }?.let { languages ->
                 put("languages", JsonArray(languages.map(::JsonPrimitive)))
             }
-            AppHash.compute(engine.applicationContext())?.let { put(APP_HASH, it) }
+            AppHash.compute(engine.applicationContext())?.let { hash ->
+                putJsonObject(AUTOFILL) {
+                    put(TYPE, APP_HASH)
+                    put(VALUE, hash)
+                }
+            }
         }
         return block.takeIf { it.isNotEmpty() }
     }
@@ -87,7 +92,7 @@ public class SmsVerification @DidwwInternalApi public constructor(
      *
      * The echo has to be the **stored** hash, not a "we support this" flag. Rendering the
      * response and dispatching the message are separate concerns on the server side, so a
-     * capability flag could truthfully report that the API understands `app_hash` while the
+     * capability flag could truthfully report that the API understands `autofill` while the
      * component that actually appends it does not — and the Retriever would be armed for a
      * message that can never reach it. Echoing the persisted value makes "echo present and
      * equal" imply "it will be appended", because it is the same datum rather than merely
@@ -100,16 +105,22 @@ public class SmsVerification @DidwwInternalApi public constructor(
      */
     @OptIn(DidwwInternalApi::class)
     private fun interceptorFor(context: InterceptionContext): Flow<String>? {
-        val sent = context.requestChannelBlock?.appHash() ?: return null
-        val echoed = context.responseChannelBlock?.appHash() ?: return null
+        val sent = context.requestChannelBlock?.autofillAppHash() ?: return null
+        val echoed = context.responseChannelBlock?.autofillAppHash() ?: return null
         if (sent != echoed) return null
         return SmsCodeInterceptor(engine.applicationContext(), context.template).codes()
     }
 
-    private fun JsonObject.appHash(): String? =
-        (this[APP_HASH] as? JsonPrimitive)?.jsonPrimitive?.content?.takeIf { it.isNotEmpty() }
+    private fun JsonObject.autofillAppHash(): String? {
+        val autofill = this[AUTOFILL] as? JsonObject ?: return null
+        if ((autofill[TYPE] as? JsonPrimitive)?.content != APP_HASH) return null
+        return (autofill[VALUE] as? JsonPrimitive)?.content?.takeIf { it.isNotEmpty() }
+    }
 
     private companion object {
+        private const val AUTOFILL = "autofill"
+        private const val TYPE = "type"
+        private const val VALUE = "value"
         private const val APP_HASH = "app_hash"
     }
 }
