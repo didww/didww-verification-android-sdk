@@ -87,6 +87,26 @@ public class DidwwVerification @DidwwInternalApi public constructor(
     }
 
     /**
+     * As [start], also sending [custom] with the create request, for the callback server to
+     * decide on. The value is sent from the device, so the callback server must validate it.
+     * At most 4096 characters; longer is rejected as `custom_too_long`.
+     */
+    public fun start(
+        destination: String,
+        method: DeliveryMethod,
+        sms: SmsOptions? = null,
+        callout: CalloutOptions? = null,
+        custom: String?,
+    ): VerificationHandle {
+        requireOwnChannel(method, DeliveryMethod.SMS, sms, "sms")
+        requireOwnChannel(method, DeliveryMethod.CALLOUT, callout, "callout")
+        return when (method) {
+            DeliveryMethod.SMS -> smsChannel.start(destination, sms, custom)
+            DeliveryMethod.CALLOUT -> calloutChannel.start(destination, callout, custom)
+        }
+    }
+
+    /**
      * One line per options parameter, so adding a channel's options to [start] cannot
      * quietly leave the mismatch unchecked for that one channel.
      */

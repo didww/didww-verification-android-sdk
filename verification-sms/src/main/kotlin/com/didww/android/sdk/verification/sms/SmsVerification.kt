@@ -43,6 +43,15 @@ public class SmsVerification @DidwwInternalApi public constructor(
         engine.start(destination, DeliveryMethod.SMS, channelBlock(options), ::interceptorFor)
 
     /**
+     * As [start], also sending [custom] with the create request, for the callback server to
+     * decide on. The value is sent from the device, so the callback server must validate it.
+     * At most 4096 characters; longer is rejected as `custom_too_long`.
+     */
+    @OptIn(DidwwInternalApi::class)
+    public fun start(destination: String, options: SmsOptions? = null, custom: String?): VerificationHandle =
+        engine.start(destination, DeliveryMethod.SMS, channelBlock(options), ::interceptorFor, custom)
+
+    /**
      * Reattaches to the SMS verification the API currently holds for [destination], rather
      * than starting one. Performs no I/O; the lookup is issued when
      * [VerificationHandle.states] is first collected.
