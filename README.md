@@ -34,7 +34,7 @@ handle.submit(codeTheUserTyped)   // never blocks; safe before you collect
 
 - [Requirements](#requirements) · [Installation](#installation) · [Quick start](#quick-start)
 - [The verification flow](#the-verification-flow) · [Channels](#channels) ·
-  [Environments](#environments) · [Authentication](#authentication)
+  [Environments](#environments) · [Testing](#testing) · [Authentication](#authentication)
 - [Error handling](#error-handling) · [Rules worth knowing](#rules-worth-knowing) ·
   [Resuming](#resuming-a-verification-you-no-longer-have-a-handle-for) ·
   [Automatic code capture](#automatic-code-capture)
@@ -73,14 +73,14 @@ You also need, on the DIDWW side:
 // settings.gradle.kts — repositories { mavenCentral() }
 
 dependencies {
-    implementation("com.didww.android.sdk.verification:verification-all:1.1.0")
+    implementation("com.didww.android.sdk.verification:verification-all:1.1.1")
 }
 ```
 
 Pick the artifact that matches what you send — see [Artifacts](#artifacts) for why the split
 exists and what it saves you.
 
-**Version 1.1.0.** The public surface has been stable since 1.0.0: a breaking change to it
+**Version 1.1.1.** The public surface has been stable since 1.0.0: a breaking change to it
 requires a major version. The three artifacts version together, so they are always upgraded as a
 set.
 
@@ -321,6 +321,14 @@ Timeouts live in `Config`, which is transport hygiene rather than verification p
 DidwwVerification(context, auth, Environment.Production,
     Config(connectTimeoutMillis = 15_000, readTimeoutMillis = 30_000))   // the defaults
 ```
+
+## Testing
+
+Use the sandbox environment (`Environment.Sandbox`) with the reserved test numbers.
+`+12015550100` to `+12015550109` always succeed: the code is `1` repeated to the
+application's code length, for example `111111` for six digits. Other reserved ranges simulate
+failures. The full table is in
+[Testing on sandbox](https://doc.didww.com/otp-verification/testing.html).
 
 ## Authentication
 

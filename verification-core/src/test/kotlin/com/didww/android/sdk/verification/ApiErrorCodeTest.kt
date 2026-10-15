@@ -8,7 +8,7 @@ import org.junit.Test
 class ApiErrorCodeTest {
 
     /**
-     * Exactly twenty-nine slugs are reachable on this wire. DIDWW's error vocabulary as a
+     * Exactly twenty-eight slugs are reachable on this wire. DIDWW's error vocabulary as a
      * whole is larger, but the rest belong to other product surfaces and can never appear
      * on a verification response.
      *
@@ -16,8 +16,8 @@ class ApiErrorCodeTest {
      * mistake — fails loudly instead of shipping unreachable cases.
      */
     @Test
-    fun `enumerates exactly the twenty-nine slugs reachable on this wire`() {
-        assertEquals(29, ApiErrorCode.entries.size)
+    fun `enumerates exactly the twenty-eight slugs reachable on this wire`() {
+        assertEquals(28, ApiErrorCode.entries.size)
 
         val expected = setOf(
             "destination_blank", "destination_invalid",
@@ -28,7 +28,7 @@ class ApiErrorCodeTest {
             "already_verified", "not_ready_to_report",
             "parameter_missing", "not_found", "unauthorized", "balance_insufficient",
             "validation_failed", "internal_error", "destination_in_cooldown",
-            "dispatch_failed", "expired", "too_many_attempts", "stale_dispatch",
+            "dispatch_failed", "expired", "too_many_attempts",
             "application_deleted", "superseded",
             "denied_missing_callback_url", "denied_by_callback", "denied_invalid_callback_response",
         )
@@ -45,6 +45,7 @@ class ApiErrorCodeTest {
         assertNull(ApiErrorCode.fromSlug("destination_wildly_unlikely"))
         assertNull(ApiErrorCode.fromSlug(null))
         assertNull(ApiErrorCode.fromSlug(""))
+        assertNull(ApiErrorCode.fromSlug("stale_dispatch"))
         assertNotNull(ApiErrorCode.fromSlug("code_invalid"))
     }
 

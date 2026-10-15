@@ -24,7 +24,6 @@ public final class com/didww/android/sdk/verification/ApiErrorCode : java/lang/E
 	public static final field NOT_FOUND Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field NOT_READY_TO_REPORT Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field PARAMETER_MISSING Lcom/didww/android/sdk/verification/ApiErrorCode;
-	public static final field STALE_DISPATCH Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field SUPERSEDED Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field TOO_MANY_ATTEMPTS Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field UNAUTHORIZED Lcom/didww/android/sdk/verification/ApiErrorCode;

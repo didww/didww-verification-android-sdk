@@ -7,7 +7,7 @@ package com.didww.android.sdk.verification
  * standing principle that knowing a slug before it can arrive costs nothing and saves an
  * SDK release when it does.
  *
- * ### Twenty-nine slugs, and why the list is not longer
+ * ### Twenty-eight slugs, and why the list is not longer
  *
  * These are the ones reachable on *this* wire. DIDWW's error vocabulary is shared
  * with other product surfaces whose slugs can never appear on a verification response, so a
@@ -55,7 +55,6 @@ public enum class ApiErrorCode(public val slug: String) {
     DISPATCH_FAILED("dispatch_failed"),
     EXPIRED("expired"),
     TOO_MANY_ATTEMPTS("too_many_attempts"),
-    STALE_DISPATCH("stale_dispatch"),
     APPLICATION_DELETED("application_deleted"),
     SUPERSEDED("superseded"),
 
