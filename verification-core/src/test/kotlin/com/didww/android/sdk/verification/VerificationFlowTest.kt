@@ -674,10 +674,10 @@ class VerificationFlowTest {
     }
 
     @Test
-    fun `the wait before a rate-limit retry is capped`() = runTest {
+    fun `a rate-limit wait at the cap is waited in full before the retry`() = runTest {
         val transport = FakeTransport(
             created(Fixtures.pendingSms()),
-            tooManyRequests(Fixtures.error("rate_limit_per_account", "too many requests"), retryAfterSeconds = 60),
+            tooManyRequests(Fixtures.error("rate_limit_per_account", "too many requests"), retryAfterSeconds = 5),
             ok(Fixtures.verified()),
         )
         val handle = engine(transport).start("+37112345678", DeliveryMethod.SMS, null, null)
@@ -685,6 +685,31 @@ class VerificationFlowTest {
 
         assertEquals("Verified", handle.states.toList().last()::class.simpleName)
         assertEquals(5_000L, testScheduler.currentTime)
+        assertEquals(3, transport.requests.size)
+    }
+
+    @Test
+    fun `a rate-limit wait above the cap is surfaced at once and stays live`() = runTest {
+        val transport = FakeTransport(
+            created(Fixtures.pendingSms()),
+            tooManyRequests(Fixtures.error("rate_limit_per_account", "too many requests"), retryAfterSeconds = 60),
+            ok(Fixtures.verified()),
+        )
+        val handle = engine(transport).start("+37112345678", DeliveryMethod.SMS, null, null)
+        handle.submit("123456")
+        handle.submit("123456")
+
+        val states = handle.states.toList()
+
+        assertEquals(
+            listOf("Starting", "AwaitingInput", "Submitting", "AwaitingInput", "Submitting", "Verified"),
+            states.shape(),
+        )
+        val retry = states[3] as VerificationState.AwaitingInput
+        assertEquals(ApiErrorCode.RATE_LIMIT_PER_ACCOUNT, retry.lastError?.known)
+        assertEquals(60, retry.lastError?.retryAfterSeconds)
+        assertEquals(0L, testScheduler.currentTime)
+        assertEquals(3, transport.requests.size)
     }
 
     @Test

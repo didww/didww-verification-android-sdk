@@ -202,8 +202,11 @@ internal class RealVerificationHandle(
                 val request = reportRequest(payload, effectiveMethod, submission.value)
                 var outcome = exchange(request)
                 if (outcome is Exchange.RateLimited) {
-                    delay(retryDelayMillis(outcome.error))
-                    outcome = exchange(request)
+                    val waitSeconds = outcome.error.retryAfterSeconds ?: 1
+                    if (waitSeconds <= MAX_RATE_LIMIT_WAIT_SECONDS) {
+                        delay(TimeUnit.SECONDS.toMillis(waitSeconds.coerceAtLeast(0).toLong()))
+                        outcome = exchange(request)
+                    }
                 }
                 when (outcome) {
                     is Exchange.Terminal -> {
@@ -213,7 +216,8 @@ internal class RealVerificationHandle(
                     is Exchange.Retryable -> {
                         lastError = outcome.error
                     }
-                    // Still limited after one retry: surface it, but the code may be submitted again.
+                    // Still limited, or the wait was too long to retry: surface it, but the code
+                    // may be submitted again.
                     is Exchange.RateLimited -> {
                         lastError = outcome.error
                     }
@@ -355,9 +359,6 @@ internal class RealVerificationHandle(
             )
         }
     }
-
-    private fun retryDelayMillis(error: ApiErrorItem): Long =
-        TimeUnit.SECONDS.toMillis((error.retryAfterSeconds ?: 1).coerceIn(1, MAX_RATE_LIMIT_WAIT_SECONDS).toLong())
 
     private fun terminalStateFor(error: ApiErrorItem): VerificationState = when (error.known) {
         ApiErrorCode.DENIED_MISSING_CALLBACK_URL,

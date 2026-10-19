@@ -77,7 +77,7 @@ declarations are the ones that encode a *decision*, and a decision is what is wo
 |---|---|---|---|
 | `connectTimeoutMillis` | `15_000` | `Config` | **Allowlisted.** Transport hygiene: `HttpURLConnection` defaults to `0`, meaning wait forever. Never on the wire, not server-tunable. A hung socket is a hang, not a policy. |
 | `readTimeoutMillis` | `30_000` | `Config` | **Allowlisted.** Same reason. Larger than connect because a slow response is normal and a slow TCP handshake is not. |
-| `MAX_RATE_LIMIT_WAIT_SECONDS` | `5` | `RealVerificationHandle` | **Allowlisted.** Caps the `Retry-After` wait before the one automatic retry of a rate-limited code submission, so a submission cannot stay in flight on a long server value. |
+| `MAX_RATE_LIMIT_WAIT_SECONDS` | `5` | `RealVerificationHandle` | **Allowlisted.** The longest `Retry-After` the SDK waits out before its one automatic retry of a rate-limited code submission; a longer value is surfaced at once, so a submission cannot stay in flight on a long server value. |
 | `SUCCESS_RANGE` | `200..299` | `HttpUrlTransport`, `RealVerificationHandle` | HTTP's own definition of success. Determines which stream carries the body — `inputStream` throws on non-2xx. |
 | `PATTERN` | ISO-8601 regex | `Iso8601` | The shape of the timestamps the API emits, not a duration or a limit. Fails open to `null`. |
 | `SECONDS_PER_MINUTE` | `60` | `Iso8601` | Calendar arithmetic. |

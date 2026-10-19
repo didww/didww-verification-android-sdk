@@ -468,10 +468,9 @@ A `429` on start surfaces the same way as any other server rejection — `Failed
   of retrying. Contact support to raise the limit.
 
 Wait the number of seconds in `Retry-After` (`retryAfterSeconds`) before trying again. When a
-`rate_limit_*` slug answers a submitted code, the SDK waits `Retry-After` (capped at 5 seconds)
-and resubmits the code once. If that is
-limited too, the state returns to `AwaitingInput` with the error in `lastError`, and the user
-can submit again. Every other `429`, and any `429` on start, ends the verification.
+`rate_limit_*` slug answers a submitted code, it is retried once after `Retry-After` when that
+is at most 5 seconds. If the wait is longer, or the retry is limited too, the state returns to
+`AwaitingInput` with the error in `lastError`, and the user can submit again. Every other `429`, and any `429` on start, ends the verification.
 
 This SDK never retries a `POST` automatically, on these slugs or any other; retrying a start is
 always something your app decides to do, not something that happens for it.

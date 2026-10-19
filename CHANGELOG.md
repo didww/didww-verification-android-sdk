@@ -50,9 +50,9 @@ to the public surface requires a major version. The three artifacts version toge
   a disabled country ends in `Denied`.
 
 - **One automatic retry of a rate-limited code submission.** When submitting a code returns
-  `429` with one of the four `rate_limit_*` slugs, the SDK waits `Retry-After` (capped at 5
-  seconds) and resubmits once. If that is limited too, the state returns to `AwaitingInput`
-  with the error in `lastError`, so the user can submit again. A `429` on start, and
+  `429` with one of the four `rate_limit_*` slugs, it is retried once after `Retry-After` when
+  that is at most 5 seconds. If the wait is longer, or the retry is limited too, the state
+  returns to `AwaitingInput` with the error in `lastError`, so the user can submit again. A `429` on start, and
   `volume_limit_reached` anywhere, still end the verification.
 
 ### Changed
