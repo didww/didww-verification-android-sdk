@@ -80,7 +80,8 @@ public sealed interface VerificationState {
 
     /**
      * Terminal. The server declined to start or continue the verification — the
-     * application's callback said no, or answered in a way the server could not read.
+     * application's callback said no, or answered in a way the server could not read, or the
+     * destination's country is disabled for the account.
      */
     public class Denied(public val error: ApiErrorItem?) : VerificationState
 
@@ -91,7 +92,8 @@ public sealed interface VerificationState {
      * The case that forces this state to exist is `denied_missing_callback_url`. An
      * application authenticated publicly with no `callback_url` returns 201 plus a denial
      * on *every* start, forever. Surfacing that as an ordinary failure would send a host
-     * looking at the phone number.
+     * looking at the phone number. `application_paused` lands here too: until the account
+     * resumes the application, every start is refused the same way.
      */
     public class SetupError(
         public val code: String,

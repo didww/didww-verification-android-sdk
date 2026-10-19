@@ -69,6 +69,39 @@ public class SmsInfo(
     public var codeLength: Int? = null
         private set
 
+    /**
+     * The template group applied to this verification — the one named in
+     * [SmsOptions.templateGroup], else the application's default — or `null` when none
+     * applies or the group no longer exists (see [templateFallbackReason]).
+     */
+    public var templateGroup: String? = null
+        private set
+
+    /**
+     * Whether the message was rendered from [templateGroup]'s template. Always sent;
+     * `Boolean?` only for the reason given on [codeLength].
+     */
+    public var templateGroupUsed: Boolean? = null
+        private set
+
+    /**
+     * Why the group's template was not used, as the raw wire value. `null` when it was used,
+     * and also when no template group applies at all ([templateGroupUsed] is then `false`).
+     * `group_missing` means the requested or default group no longer exists, and comes with
+     * a `null` [templateGroup]. An open vocabulary: resolve it with
+     * [TemplateFallbackReason.fromSlug], which returns `null` for a reason this release does
+     * not know.
+     */
+    public var templateFallbackReason: String? = null
+        private set
+
+    /**
+     * The autofill marker stored for this message, or `null` when none was. This SDK asks for
+     * an `app_hash` marker; when it sends none, the application's SMS domain may apply instead.
+     */
+    public var autofill: SmsAutofill? = null
+        private set
+
     /** Adds [codeLength] without touching the primary constructor above — see its doc. */
     public constructor(
         template: String? = null,
@@ -79,9 +112,40 @@ public class SmsInfo(
         this.codeLength = codeLength
     }
 
+    /** Adds the template-group fields and [autofill], on the same terms as [codeLength]. */
+    public constructor(
+        template: String? = null,
+        language: String? = null,
+        interceptionTimeoutSeconds: Int? = null,
+        codeLength: Int? = null,
+        templateGroup: String? = null,
+        templateGroupUsed: Boolean? = null,
+        templateFallbackReason: String? = null,
+        autofill: SmsAutofill? = null,
+    ) : this(template, language, interceptionTimeoutSeconds, codeLength) {
+        this.templateGroup = templateGroup
+        this.templateGroupUsed = templateGroupUsed
+        this.templateFallbackReason = templateFallbackReason
+        this.autofill = autofill
+    }
+
     override fun toString(): String =
         "SmsInfo(template=${template?.let { "\"$it\"" }}, language=$language, " +
-            "interceptionTimeoutSeconds=$interceptionTimeoutSeconds, codeLength=$codeLength)"
+            "interceptionTimeoutSeconds=$interceptionTimeoutSeconds, codeLength=$codeLength, " +
+            "templateGroup=$templateGroup, templateGroupUsed=$templateGroupUsed, " +
+            "templateFallbackReason=$templateFallbackReason, autofill=$autofill)"
+}
+
+/**
+ * The SMS autofill marker the server stored for a verification: [type] `app_hash`, whose
+ * [value] is the Android SMS Retriever hash, or `domain`, whose [value] is the domain the
+ * message is bound to.
+ */
+public class SmsAutofill(
+    public val type: String,
+    public val value: String,
+) {
+    override fun toString(): String = "SmsAutofill(type=$type, value=$value)"
 }
 
 /**
@@ -104,6 +168,18 @@ public class CalloutInfo(
     public var codeLength: Int? = null
         private set
 
+    /** See [SmsInfo.templateGroup]; the group named in [CalloutOptions.templateGroup]. */
+    public var templateGroup: String? = null
+        private set
+
+    /** See [SmsInfo.templateGroupUsed] — whether the announcement came from [templateGroup]. */
+    public var templateGroupUsed: Boolean? = null
+        private set
+
+    /** See [SmsInfo.templateFallbackReason]. */
+    public var templateFallbackReason: String? = null
+        private set
+
     /** Adds [codeLength] without touching the primary constructor above — see its doc. */
     public constructor(
         language: String? = null,
@@ -112,5 +188,42 @@ public class CalloutInfo(
         this.codeLength = codeLength
     }
 
-    override fun toString(): String = "CalloutInfo(language=$language, codeLength=$codeLength)"
+    /** Adds the template-group fields, on the same terms as [codeLength]. */
+    public constructor(
+        language: String? = null,
+        codeLength: Int? = null,
+        templateGroup: String? = null,
+        templateGroupUsed: Boolean? = null,
+        templateFallbackReason: String? = null,
+    ) : this(language, codeLength) {
+        this.templateGroup = templateGroup
+        this.templateGroupUsed = templateGroupUsed
+        this.templateFallbackReason = templateFallbackReason
+    }
+
+    override fun toString(): String =
+        "CalloutInfo(language=$language, codeLength=$codeLength, templateGroup=$templateGroup, " +
+            "templateGroupUsed=$templateGroupUsed, templateFallbackReason=$templateFallbackReason)"
+}
+
+/**
+ * Why a verification did not use its template group's template, read from
+ * [SmsInfo.templateFallbackReason] or [CalloutInfo.templateFallbackReason].
+ *
+ * Open, like [ApiErrorCode]: a reason this release does not know resolves to `null` while
+ * the raw string survives on the info type.
+ */
+public enum class TemplateFallbackReason(public val slug: String) {
+    LANGUAGE_MISSING("language_missing"),
+    VERSION_PENDING("version_pending"),
+    VERSION_REJECTED("version_rejected"),
+    AUDIO_NOT_READY("audio_not_ready"),
+    GROUP_MISSING("group_missing"),
+    ;
+
+    public companion object {
+        /** `null` for any reason this release does not know. Never throws. */
+        public fun fromSlug(slug: String?): TemplateFallbackReason? =
+            entries.firstOrNull { it.slug == slug }
+    }
 }

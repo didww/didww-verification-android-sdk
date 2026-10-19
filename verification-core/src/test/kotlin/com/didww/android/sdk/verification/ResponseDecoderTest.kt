@@ -3,6 +3,8 @@ package com.didww.android.sdk.verification
 import com.didww.android.sdk.verification.internal.DecodeException
 import com.didww.android.sdk.verification.internal.ResponseDecoder
 import com.didww.android.sdk.verification.testing.Fixtures
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -122,6 +124,41 @@ class ResponseDecoderTest {
     }
 
     @Test
+    fun `decodes the template-group fields on either channel`() {
+        val sms = ResponseDecoder.verification(
+            Fixtures.pendingSms(templateGroup = "checkout", templateFallbackReason = "language_missing"),
+        )
+        assertEquals("checkout", sms.templateGroup)
+        assertEquals(false, sms.templateGroupUsed)
+        assertEquals("language_missing", sms.templateFallbackReason)
+
+        val callout = ResponseDecoder.verification(
+            Fixtures.pendingCallout(templateGroup = "checkout", templateGroupUsed = true),
+        )
+        assertEquals("checkout", callout.templateGroup)
+        assertEquals(true, callout.templateGroupUsed)
+        assertNull(callout.templateFallbackReason)
+
+        // JSON null on the wire reads as null, not as the string "null".
+        assertNull(ResponseDecoder.verification(Fixtures.pendingSms()).templateGroup)
+    }
+
+    @Test
+    fun `decodes the autofill echo for both marker types`() {
+        val hash = ResponseDecoder.verification(Fixtures.pendingSms(appHash = "FA+9qCX9VSu")).autofill
+        assertEquals("app_hash", hash?.type)
+        assertEquals("FA+9qCX9VSu", hash?.value)
+
+        val domain = ResponseDecoder.verification(
+            Fixtures.pendingSms(appHash = "example.com", autofillType = "domain"),
+        ).autofill
+        assertEquals("domain", domain?.type)
+        assertEquals("example.com", domain?.value)
+
+        assertNull(ResponseDecoder.verification(Fixtures.pendingSms()).autofill)
+    }
+
+    @Test
     fun `a null template is tolerated`() {
         val payload = ResponseDecoder.verification(Fixtures.pendingSms(template = null))
         assertNull(payload.template)
@@ -162,7 +199,7 @@ class ResponseDecoderTest {
     @Test
     fun `reads the channel block by the delivery method's own name`() {
         val payload = ResponseDecoder.verification(Fixtures.pendingSms(appHash = "FA+9qCX9VSu"))
-        assertEquals("FA+9qCX9VSu", payload.channelBlock?.get("app_hash")?.toString()?.trim('"'))
+        assertEquals("FA+9qCX9VSu", payload.channelBlock?.get("autofill")?.jsonObject?.get("value")?.jsonPrimitive?.content)
     }
 
     @Test

@@ -16,7 +16,7 @@ source tools/android-env.sh   # finds JDK 17 and the Android SDK on either OS
 ```
 
 ```bash
-./gradlew --offline check     # 98 tests, lint, and five guards
+./gradlew --offline check     # tests, lint, and five guards
 ./gradlew assembleRelease     # three AARs
 ```
 
@@ -77,6 +77,7 @@ declarations are the ones that encode a *decision*, and a decision is what is wo
 |---|---|---|---|
 | `connectTimeoutMillis` | `15_000` | `Config` | **Allowlisted.** Transport hygiene: `HttpURLConnection` defaults to `0`, meaning wait forever. Never on the wire, not server-tunable. A hung socket is a hang, not a policy. |
 | `readTimeoutMillis` | `30_000` | `Config` | **Allowlisted.** Same reason. Larger than connect because a slow response is normal and a slow TCP handshake is not. |
+| `MAX_RATE_LIMIT_WAIT_SECONDS` | `5` | `RealVerificationHandle` | **Allowlisted.** Caps the `Retry-After` wait before the one automatic retry of a rate-limited code submission, so a submission cannot stay in flight on a long server value. |
 | `SUCCESS_RANGE` | `200..299` | `HttpUrlTransport`, `RealVerificationHandle` | HTTP's own definition of success. Determines which stream carries the body — `inputStream` throws on non-2xx. |
 | `PATTERN` | ISO-8601 regex | `Iso8601` | The shape of the timestamps the API emits, not a duration or a limit. Fails open to `null`. |
 | `SECONDS_PER_MINUTE` | `60` | `Iso8601` | Calendar arithmetic. |
@@ -85,7 +86,7 @@ declarations are the ones that encode a *decision*, and a decision is what is wo
 | `MILLIS_PER_SECOND` | `1_000L` | `Iso8601` | Unit conversion. |
 | `HASHED_BYTES` | `9` | `AppHash` | Google's SMS Retriever protocol constant: the digest is truncated to nine bytes before base64. Theirs, not ours. |
 | `BASE64_CHARS` | `11` | `AppHash` | Google's protocol constant: the app hash appended to a message is exactly eleven characters. |
-| `FORMAT` | app-hash regex | `AppHash` | The alphabet and length the API accepts for `app_hash`. Not a policy value — a shape check on something we compute, so a malformed hash is dropped rather than failing the verification. |
+| `FORMAT` | app-hash regex | `AppHash` | The alphabet and length the API accepts for an `app_hash` autofill value. Not a policy value — a shape check on something we compute, so a malformed hash is dropped rather than failing the verification. |
 
 ### Deliberately absent
 

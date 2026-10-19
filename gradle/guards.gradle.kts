@@ -266,10 +266,10 @@ val literalsGuard by tasks.registering(LiteralsGuard::class) {
     sources.from(mainSources.map { it.asFileTree.matching { include("**/*.kt") } })
     inventory.set(layout.projectDirectory.file("CONTRIBUTING.md"))
     policyPattern.set("TIMEOUT|EXPIR|ATTEMPT|RETRY|INTERVAL|MAX_")
-    // The only two exemptions, and both are transport hygiene: HttpURLConnection defaults
-    // both timeouts to 0 = wait forever. Neither appears on the wire; neither can be
-    // server-tuned. See Config's KDoc.
-    policyAllowlist.set(listOf("connectTimeoutMillis", "readTimeoutMillis"))
+    // Transport hygiene: HttpURLConnection defaults both timeouts to 0 = wait forever, and
+    // the rate-limit cap bounds how long one submission may sit on a server-sent
+    // Retry-After. None appears on the wire; see CONTRIBUTING.md.
+    policyAllowlist.set(listOf("connectTimeoutMillis", "readTimeoutMillis", "MAX_RATE_LIMIT_WAIT_SECONDS"))
 }
 
 tasks.named("check") {

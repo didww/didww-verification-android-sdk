@@ -28,7 +28,12 @@ internal class RequestFactory(
     private val auth: Auth,
 ) {
 
-    fun create(destination: String, method: DeliveryMethod, channelBlock: JsonObject?): HttpRequest {
+    fun create(
+        destination: String,
+        method: DeliveryMethod,
+        channelBlock: JsonObject?,
+        custom: String? = null,
+    ): HttpRequest {
         val body = buildJsonObject {
             put(
                 "data",
@@ -38,6 +43,7 @@ internal class RequestFactory(
                     // The per-channel block is keyed by the delivery method's own name.
                     // Only the block matching `delivery_method` is read server-side.
                     channelBlock?.let { put(method.wireValue, it) }
+                    custom?.let { put("custom", it) }
                 },
             )
         }

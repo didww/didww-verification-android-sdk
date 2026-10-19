@@ -6,6 +6,73 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html): from 1.0.0 onwards a breaking change
 to the public surface requires a major version. The three artifacts version together.
 
+## [1.2.0] — Unreleased
+
+### Added
+
+- **`custom` on `start`** — an optional string (at most 4096 characters) sent with the create
+  request as the top-level `custom` and forwarded to your callback server, so it can decide
+  whether to allow the verification using context from the app. It is not returned in any
+  response. Available as a new overload on `SmsVerification.start`,
+  `CalloutVerification.start` and `DidwwVerification.start`; existing signatures are
+  unchanged. The value is sent from the device, so the callback server must validate it.
+  Longer values are rejected as the new `custom_too_long` slug.
+
+- **`templateGroup` on `SmsOptions` and `CalloutOptions`** — picks one of the application's
+  template groups instead of its default. An unknown name is rejected as the new
+  `template_group_not_found` slug. Added through a secondary constructor on both types.
+
+- **`templateGroup`, `templateGroupUsed` and `templateFallbackReason` on `SmsInfo` and
+  `CalloutInfo`** — the group applied, whether its template was used, and if not, why.
+  When no template group applies at all, `templateGroupUsed` is `false` and
+  `templateFallbackReason` is `null`; `group_missing` comes with a `null` `templateGroup`,
+  because the requested or default group no longer exists. `templateFallbackReason` is the raw
+  wire value, resolved with
+  `TemplateFallbackReason.fromSlug`, which returns `null` for a reason this release does not
+  know. `templateGroupUsed` is always sent; it is `Boolean?` only because these fields are
+  added through a new secondary constructor, on the same terms as `codeLength`.
+
+- **`SmsInfo.autofill`** — the stored SMS autofill marker as `SmsAutofill(type, value)`:
+  `app_hash` with the SMS Retriever hash, or `domain` with the domain the message is bound
+  to; `null` when none was stored.
+
+- **New `ApiErrorCode` slugs:** `autofill_invalid` and `sms_domain_not_configured` (`422`);
+  `rate_limit_per_ip` (`429`, too many requests from this IP address),
+  `rate_limit_failed_auth` (`429`, too many failed authentication attempts from this IP
+  address), `rate_limit_per_account` (`429`, too many requests for this account) and
+  `rate_limit_public_per_account` (`429`, too many public requests for this account), each
+  with a `Retry-After` to wait before trying again; `volume_limit_reached` (`429`, the
+  application reached its daily or monthly verification limit for this delivery method; its
+  `Retry-After` can be long, days, so surface it to the user instead of retrying the start);
+  and the outcome codes
+  `application_paused` and `destination_country_disabled` (status `denied`). A paused
+  application ends in `SetupError`, since retrying cannot help until the account resumes it;
+  a disabled country ends in `Denied`.
+
+- **One automatic retry of a rate-limited code submission.** When submitting a code returns
+  `429` with one of the four `rate_limit_*` slugs, the SDK waits `Retry-After` (capped at 5
+  seconds) and resubmits once. If that is limited too, the state returns to `AwaitingInput`
+  with the error in `lastError`, so the user can submit again. A `429` on start, and
+  `volume_limit_reached` anywhere, still end the verification.
+
+### Changed
+
+- **An unsupported destination is a failed verification, no longer a `422`.** A destination
+  with no known country, one the delivery method cannot reach, or one in a blocked range now
+  comes back as a `201` verification with status `failed` and `error_code`
+  `destination_not_supported_for_channel`, ending in `Failed`. Callers that handled the `422`
+  get a failed verification instead. The slug stays in `ApiErrorCode` for compatibility.
+
+- **The SMS Retriever hash is sent as `sms.autofill`** (`{"type": "app_hash", "value": …}`)
+  instead of the flat `sms.app_hash`, and automatic SMS Retriever capture now arms on the
+  `autofill` echo carrying the same hash, no longer on the flat `app_hash` echo.
+
+### Deprecated
+
+- **`ApiErrorCode.STALE_DISPATCH`.** The service no longer sends it and reports these
+  verifications as `dispatch_failed`. It stays so existing `when` branches keep compiling,
+  and will be removed in the next major version.
+
 ## [1.1.0] — 2026-10
 
 ### Added

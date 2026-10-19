@@ -73,14 +73,14 @@ You also need, on the DIDWW side:
 // settings.gradle.kts — repositories { mavenCentral() }
 
 dependencies {
-    implementation("com.didww.android.sdk.verification:verification-all:1.1.0")
+    implementation("com.didww.android.sdk.verification:verification-all:1.2.0")
 }
 ```
 
 Pick the artifact that matches what you send — see [Artifacts](#artifacts) for why the split
 exists and what it saves you.
 
-**Version 1.1.0.** The public surface has been stable since 1.0.0: a breaking change to it
+**Version 1.2.0.** The public surface has been stable since 1.0.0: a breaking change to it
 requires a major version. The three artifacts version together, so they are always upgraded as a
 set.
 
@@ -176,7 +176,7 @@ Starting the verification performs **no I/O** — `start()` only builds the hand
 | `Submitting` | A value is in flight. | |
 | `Verified` | The server accepted the value. | ✅ |
 | `Failed` | Carries a `FailureReason` — either an API error or an SDK-side one. | ✅ |
-| `Denied` | The application's callback declined, or answered unreadably. | ✅ |
+| `Denied` | The application's callback declined or answered unreadably, the destination's country is disabled, or another denial reason, including one newer than this SDK. | ✅ |
 | `SetupError` | The **application** is misconfigured; no user input can rescue it. | ✅ |
 | `Expired` | The deadline passed with no accepted value. | ✅ |
 
@@ -236,6 +236,33 @@ That is deliberate. The server reads only the block matching `delivery_method` a
 `201` with its defaults, so the request would silently not be the one you wrote — a mistake
 better caught at the call site than discovered from a message arriving in the wrong language.
 
+#### Custom data for your callback server
+
+`custom` is an optional string (at most 4096 characters) passed alongside the options and
+forwarded to your callback server, so it can allow or deny the verification using context from
+the app. It is not returned in any response. Longer values are rejected as
+`ApiErrorCode.CUSTOM_TOO_LONG`.
+
+```kotlin
+didww.start(number, DeliveryMethod.SMS, custom = "screen=checkout")
+smsVerification.start(number, SmsOptions(languages = listOf("de-DE")), custom = "screen=checkout")
+```
+
+It is sent from the device, so the callback server must validate it and never trust it.
+
+#### Template groups
+
+`templateGroup` picks one of the application's template groups instead of its default. An
+unknown name is rejected as `ApiErrorCode.TEMPLATE_GROUP_NOT_FOUND`.
+
+```kotlin
+didww.start(number, DeliveryMethod.SMS, sms = SmsOptions(templateGroup = "checkout"))
+didww.start(number, DeliveryMethod.CALLOUT, callout = CalloutOptions(templateGroup = "checkout"))
+```
+
+Whether the group's template was actually used comes back on `AwaitingInput.sms` and
+`.callout`, below.
+
 #### Languages
 
 `languages` is a list of BCP-47 tags, most preferred first — the message template for SMS, the
@@ -284,8 +311,8 @@ for a response that carried no block at all.
 
 | | Carries |
 |---|---|
-| `AwaitingInput.sms` | `template` (the message with `{{CODE}}` still in it), `language`, `interceptionTimeoutSeconds`, `codeLength` |
-| `AwaitingInput.callout` | `language`, `codeLength` |
+| `AwaitingInput.sms` | `template` (the message with `{{CODE}}` still in it), `language`, `interceptionTimeoutSeconds`, `codeLength`, `templateGroup`, `templateGroupUsed`, `templateFallbackReason`, `autofill` |
+| `AwaitingInput.callout` | `language`, `codeLength`, `templateGroup`, `templateGroupUsed`, `templateFallbackReason` |
 
 `interceptionTimeoutSeconds` is **a budget for automatic capture, not a deadline**. It is how
 long an on-device listener is worth keeping armed; when it runs out the SDK stops listening and
@@ -297,6 +324,20 @@ when auto-fill will stop trying; never treat it as time remaining.
 per application. It is informational only: the SDK compiles in no length of its own, so
 `AwaitingInput.sms`/`.callout` are what tell you, not a constant (see
 [Automatic code capture](#automatic-code-capture)).
+
+`templateGroup` is the group applied, or `null` when none was. `templateGroupUsed` says
+whether its template was used. When no template group applies at all, `templateGroupUsed` is
+`false` and `templateFallbackReason` is `null`. Otherwise a group that was not used comes with
+a reason — `language_missing`, `version_pending`, `version_rejected`, `audio_not_ready` or
+`group_missing`; with `group_missing` the requested or default group no longer exists and
+`templateGroup` is `null`. The reason is the raw wire value; `TemplateFallbackReason.fromSlug`
+resolves it and returns `null` for a reason added after this release.
+
+`autofill` is the marker stored for the message: type `app_hash`, whose `value` is the SMS
+Retriever hash this SDK sent, or type `domain`, whose `value` is the application's SMS domain
+(applied when the SDK could not send a hash); `null` when none was stored. This SDK never
+sends type `domain`, so it never provokes `ApiErrorCode.SMS_DOMAIN_NOT_CONFIGURED`; the slug is
+known only because the API can return it.
 
 ## Environments
 
@@ -401,7 +442,8 @@ never on `detail`.
 `SetupError` exists for one situation that is otherwise indistinguishable from a bad phone
 number: an application authenticated publicly with **no `callback_url`** returns `201` plus a
 denial on *every* start, forever. Surfacing that as an ordinary failure sends a host — and
-their user — looking at the phone number.
+their user — looking at the phone number. A **paused application** (`application_paused`) is
+reported the same way: every start is refused until the account resumes it.
 
 ```kotlin
 is VerificationState.SetupError ->
@@ -411,13 +453,28 @@ is VerificationState.SetupError ->
 
 Treat it as a bug report against your own configuration, not as a message for the end user.
 
-### Cooldown (`429`) and `retryAfterSeconds`
+### Rate limits (`429`) and `retryAfterSeconds`
 
-Starting a verification for the same application and destination within 30 seconds of a
-non-denied one is rejected with `429` and the slug `destination_in_cooldown`. It surfaces the
-same way as any other server rejection — `Failed` carrying `FailureReason.Api` — and this SDK
-never retries a `POST` automatically, on this slug or any other; retrying is always something
-your app decides to do, not something that happens for it.
+A `429` on start surfaces the same way as any other server rejection — `Failed` carrying
+`FailureReason.Api` — and its slug says which limit was hit:
+
+- `destination_in_cooldown` — a verification for this destination was requested too recently.
+- `rate_limit_per_ip` — too many requests from this IP address.
+- `rate_limit_failed_auth` — too many failed authentication attempts from this IP address.
+- `rate_limit_per_account` — too many requests for this account.
+- `rate_limit_public_per_account` — too many public requests for this account.
+- `volume_limit_reached` — the application reached its daily or monthly verification limit
+  for this delivery method. `Retry-After` can be long (days): surface it to the user instead
+  of retrying. Contact support to raise the limit.
+
+Wait the number of seconds in `Retry-After` (`retryAfterSeconds`) before trying again. When a
+`rate_limit_*` slug answers a submitted code, the SDK waits `Retry-After` (capped at 5 seconds)
+and resubmits the code once. If that is
+limited too, the state returns to `AwaitingInput` with the error in `lastError`, and the user
+can submit again. Every other `429`, and any `429` on start, ends the verification.
+
+This SDK never retries a `POST` automatically, on these slugs or any other; retrying a start is
+always something your app decides to do, not something that happens for it.
 
 `ApiErrorItem.retryAfterSeconds` carries the server's `Retry-After` header, in whole seconds —
 `null` when the response carried no `Retry-After` header. Show it, or use it to decide when to
@@ -587,7 +644,7 @@ source tools/android-env.sh   # finds JDK 17 and the Android SDK on either OS
 
 ```bash
 ./gradlew assembleRelease     # three AARs
-./gradlew --offline test      # 98 tests, no network
+./gradlew --offline test      # no network
 ./gradlew --offline check     # tests, lint, and five guards
 ```
 

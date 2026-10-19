@@ -6,6 +6,7 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -73,10 +74,15 @@ class RequestFactoryTest {
         val body = factory.create(
             "+37112345678",
             DeliveryMethod.SMS,
-            buildJsonObject { put("app_hash", "FA+9qCX9VSu") },
+            buildJsonObject {
+                putJsonObject("autofill") {
+                    put("type", "app_hash")
+                    put("value", "FA+9qCX9VSu")
+                }
+            },
         ).body!!
         assertTrue(body.contains("\"delivery_method\":\"sms\""))
-        assertTrue(body.contains("\"sms\":{\"app_hash\":\"FA+9qCX9VSu\"}"))
+        assertTrue(body.contains("\"sms\":{\"autofill\":{\"type\":\"app_hash\",\"value\":\"FA+9qCX9VSu\"}}"))
 
         // The factory never inspects the block, so a channel with different keys nests
         // the same way with no change here — which is what makes adding one cheap.
@@ -87,6 +93,30 @@ class RequestFactoryTest {
         ).body!!
         assertTrue(callout.contains("\"delivery_method\":\"callout\""))
         assertTrue(callout.contains("\"callout\":{\"languages\":[\"pt-BR\"]}"))
+    }
+
+    @Test
+    fun `create puts custom in the top-level data object and omits it when null`() {
+        val with = factory.create("+37112345678", DeliveryMethod.SMS, null, "ctx: 42").body!!
+        assertTrue(with.contains("\"data\":{"))
+        assertTrue(with.contains("\"custom\":\"ctx: 42\""))
+        assertTrue(!with.contains("\"sms\":"))
+
+        val nested = factory.create(
+            "+37112345678",
+            DeliveryMethod.SMS,
+            buildJsonObject {
+                putJsonObject("autofill") {
+                    put("type", "app_hash")
+                    put("value", "FA+9qCX9VSu")
+                }
+            },
+            "x",
+        ).body!!
+        assertTrue(nested.contains("\"sms\":{\"autofill\":{\"type\":\"app_hash\",\"value\":\"FA+9qCX9VSu\"}}"))
+        assertTrue(nested.contains("\"custom\":\"x\""))
+
+        assertTrue(!factory.create("+37112345678", DeliveryMethod.SMS, null).body!!.contains("custom"))
     }
 
     @Test

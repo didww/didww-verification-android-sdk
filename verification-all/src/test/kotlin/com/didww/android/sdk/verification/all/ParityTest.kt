@@ -144,6 +144,34 @@ class ParityTest {
     }
 
     @Test
+    fun `custom reaches the wire identically through either entrypoint, on every channel`() = runTest {
+        for (method in DeliveryMethod.entries) {
+            val wire = method.wire()
+            val viaUmbrella = script(wire)
+            val direct = script(wire)
+
+            run(DidwwVerification(engine(viaUmbrella)).start("+37112345678", method, custom = "order-42"))
+            run(
+                when (method) {
+                    DeliveryMethod.SMS -> SmsVerification(engine(direct)).start("+37112345678", null, "order-42")
+                    DeliveryMethod.CALLOUT -> CalloutVerification(engine(direct)).start("+37112345678", null, "order-42")
+                },
+            )
+
+            assertEquals(
+                "channel $wire",
+                direct.requests.map { it.method to it.body },
+                viaUmbrella.requests.map { it.method to it.body },
+            )
+            assertEquals(
+                "channel $wire",
+                true,
+                viaUmbrella.requests[0].body!!.contains("\"custom\":\"order-42\""),
+            )
+        }
+    }
+
+    @Test
     fun `options for the wrong channel are refused at the call site, on every channel`() = runTest {
         // The server reads only the block matching `delivery_method`, so a misplaced block
         // is silently dropped and answered 201 with the defaults. Failing here is the only
