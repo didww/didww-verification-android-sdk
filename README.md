@@ -34,7 +34,7 @@ handle.submit(codeTheUserTyped)   // never blocks; safe before you collect
 
 - [Requirements](#requirements) · [Installation](#installation) · [Quick start](#quick-start)
 - [The verification flow](#the-verification-flow) · [Channels](#channels) ·
-  [Environments](#environments) · [Authentication](#authentication)
+  [Environments](#environments) · [Testing](#testing) · [Authentication](#authentication)
 - [Error handling](#error-handling) · [Rules worth knowing](#rules-worth-knowing) ·
   [Resuming](#resuming-a-verification-you-no-longer-have-a-handle-for) ·
   [Automatic code capture](#automatic-code-capture)
@@ -363,6 +363,20 @@ DidwwVerification(context, auth, Environment.Production,
     Config(connectTimeoutMillis = 15_000, readTimeoutMillis = 30_000))   // the defaults
 ```
 
+## Testing
+
+The sandbox environment sends no real SMS and places no real calls:
+
+```kotlin
+DidwwVerification(context, auth, Environment.Sandbox)
+```
+
+Only reserved test numbers get an outcome. Each gives a fixed result, such as delivered,
+failed or expired, and a delivered one has a fixed code. A verification to any other number
+ends with status `failed` and error code `dispatch_failed`. The test numbers, their outcomes
+and the code to submit are listed in
+[Testing on sandbox](https://doc.didww.com/otp-verification/testing.html).
+
 ## Authentication
 
 The API ranks three auth modes. This SDK implements the two usable from a device:
@@ -463,9 +477,9 @@ A `429` on start surfaces the same way as any other server rejection — `Failed
 - `rate_limit_failed_auth` — too many failed authentication attempts from this IP address.
 - `rate_limit_per_account` — too many requests for this account.
 - `rate_limit_public_per_account` — too many public requests for this account.
-- `volume_limit_reached` — the application reached its daily or monthly verification limit
-  for this delivery method. `Retry-After` can be long (days): surface it to the user instead
-  of retrying. Contact support to raise the limit.
+- `volume_limit_reached` — the application reached its daily or monthly verification limit.
+  `Retry-After` can be long (days): surface it to the user instead of retrying. Contact
+  support to raise the limit.
 
 Wait the number of seconds in `Retry-After` (`retryAfterSeconds`) before trying again. When a
 `rate_limit_*` slug answers a submitted code, it is retried once after `Retry-After` when that

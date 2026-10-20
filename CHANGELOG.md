@@ -42,8 +42,8 @@ to the public surface requires a major version. The three artifacts version toge
   address), `rate_limit_per_account` (`429`, too many requests for this account) and
   `rate_limit_public_per_account` (`429`, too many public requests for this account), each
   with a `Retry-After` to wait before trying again; `volume_limit_reached` (`429`, the
-  application reached its daily or monthly verification limit for this delivery method; its
-  `Retry-After` can be long, days, so surface it to the user instead of retrying the start);
+  application reached its daily or monthly verification limit; its `Retry-After` can be
+  long, days, so surface it to the user instead of retrying the start);
   and the outcome codes
   `application_paused` and `destination_country_disabled` (status `denied`). A paused
   application ends in `SetupError`, since retrying cannot help until the account resumes it;
@@ -66,6 +66,9 @@ to the public surface requires a major version. The three artifacts version toge
 - **The SMS Retriever hash is sent as `sms.autofill`** (`{"type": "app_hash", "value": …}`)
   instead of the flat `sms.app_hash`, and automatic SMS Retriever capture now arms on the
   `autofill` echo carrying the same hash, no longer on the flat `app_hash` echo.
+
+- **Docs:** a Testing section on the sandbox environment, which sends nothing and gives an
+  outcome only for the reserved test numbers.
 
 ### Deprecated
 
