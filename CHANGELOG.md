@@ -67,8 +67,8 @@ to the public surface requires a major version. The three artifacts version toge
   instead of the flat `sms.app_hash`, and automatic SMS Retriever capture now arms on the
   `autofill` echo carrying the same hash, no longer on the flat `app_hash` echo.
 
-- **Docs:** a Testing section on the sandbox environment, which sends nothing and gives an
-  outcome only for the reserved test numbers.
+- **Docs:** a Testing section on the sandbox environment, which sends nothing and gives a
+  predefined result only for the reserved test numbers.
 
 ### Deprecated
 

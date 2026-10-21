@@ -371,11 +371,10 @@ The sandbox environment sends no real SMS and places no real calls:
 DidwwVerification(context, auth, Environment.Sandbox)
 ```
 
-Only reserved test numbers get an outcome. Each gives a fixed result, such as delivered,
-failed or expired, and a delivered one has a fixed code. A verification to any other number
-ends with status `failed` and error code `dispatch_failed`. The test numbers, their outcomes
-and the code to submit are listed in
-[Testing on sandbox](https://doc.didww.com/otp-verification/testing.html).
+Only reserved test numbers give a predefined result, such as delivered, failed or expired,
+and a delivered one has a fixed code. Any other number is never delivered to, and its
+verification ends as failed. The test numbers, their outcomes and the code to submit are
+listed in [Testing on sandbox](https://doc.didww.com/otp-verification/testing.html).
 
 ## Authentication
 
@@ -486,7 +485,7 @@ Wait the number of seconds in `Retry-After` (`retryAfterSeconds`) before trying 
 is at most 5 seconds. If the wait is longer, or the retry is limited too, the state returns to
 `AwaitingInput` with the error in `lastError`, and the user can submit again. Every other `429`, and any `429` on start, ends the verification.
 
-This SDK never retries a `POST` automatically, on these slugs or any other; retrying a start is
+This SDK never retries a start automatically, on these slugs or any other; retrying a start is
 always something your app decides to do, not something that happens for it.
 
 `ApiErrorItem.retryAfterSeconds` carries the server's `Retry-After` header, in whole seconds —
