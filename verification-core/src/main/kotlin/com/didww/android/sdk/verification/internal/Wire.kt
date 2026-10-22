@@ -2,6 +2,7 @@ package com.didww.android.sdk.verification.internal
 
 import com.didww.android.sdk.verification.ApiErrorItem
 import com.didww.android.sdk.verification.DeliveryMethod
+import com.didww.android.sdk.verification.SmsAutofill
 import com.didww.android.sdk.verification.VerificationStatus
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNull
@@ -17,8 +18,11 @@ import kotlinx.serialization.json.jsonObject
  * { "data": { "id", "destination", "delivery_method", "fee", "status",
  *             "error_code", "error_detail", "expires_at",
  *             "sms": { "template": "...", "language": "de-DE", "interception_timeout": 300,
- *                      "code_length": 6 },
- *             "callout": { "language": "pt-BR", "code_length": 6 } } }
+ *                      "code_length": 6, "autofill": { "type": "app_hash", "value": "..." },
+ *                      "template_group": null, "template_group_used": false,
+ *                      "template_fallback_reason": null },
+ *             "callout": { "language": "pt-BR", "code_length": 6, "template_group": null,
+ *                          "template_group_used": false, "template_fallback_reason": null } } }
  * ```
  *
  * At most one channel block is present, keyed by `delivery_method`, and a channel that has
@@ -71,6 +75,24 @@ internal class VerificationPayload(
      */
     val codeLength: Int?
         get() = channelBlock?.stringOrNull("code_length")?.toIntOrNull()
+
+    // The template-group fields mean the same on both channels, so, like [language], one
+    // accessor each serves both, read as tolerantly as [codeLength].
+    val templateGroup: String? get() = channelBlock?.stringOrNull("template_group")
+
+    val templateGroupUsed: Boolean?
+        get() = channelBlock?.stringOrNull("template_group_used")?.toBooleanStrictOrNull()
+
+    val templateFallbackReason: String? get() = channelBlock?.stringOrNull("template_fallback_reason")
+
+    /** SMS only; omitted by the server when no marker was stored. */
+    val autofill: SmsAutofill?
+        get() {
+            val block = channelBlock?.get("autofill") as? JsonObject ?: return null
+            val type = block.stringOrNull("type") ?: return null
+            val value = block.stringOrNull("value") ?: return null
+            return SmsAutofill(type, value)
+        }
 }
 
 internal object ResponseDecoder {

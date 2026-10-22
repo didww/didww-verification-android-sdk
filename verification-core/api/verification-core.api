@@ -1,11 +1,14 @@
 public final class com/didww/android/sdk/verification/ApiErrorCode : java/lang/Enum {
 	public static final field ALREADY_VERIFIED Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field APPLICATION_DELETED Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field APPLICATION_PAUSED Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field APP_HASH_INVALID Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field AUTOFILL_INVALID Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field BALANCE_INSUFFICIENT Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field CODE_BLANK Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field CODE_INVALID Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field CODE_VALUE_PRESENT Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field CUSTOM_TOO_LONG Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field Companion Lcom/didww/android/sdk/verification/ApiErrorCode$Companion;
 	public static final field DELIVERY_METHOD_BLANK Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field DELIVERY_METHOD_INCLUSION Lcom/didww/android/sdk/verification/ApiErrorCode;
@@ -14,6 +17,7 @@ public final class com/didww/android/sdk/verification/ApiErrorCode : java/lang/E
 	public static final field DENIED_INVALID_CALLBACK_RESPONSE Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field DENIED_MISSING_CALLBACK_URL Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field DESTINATION_BLANK Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field DESTINATION_COUNTRY_DISABLED Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field DESTINATION_INVALID Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field DESTINATION_IN_COOLDOWN Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field DESTINATION_NOT_SUPPORTED_FOR_CHANNEL Lcom/didww/android/sdk/verification/ApiErrorCode;
@@ -24,11 +28,18 @@ public final class com/didww/android/sdk/verification/ApiErrorCode : java/lang/E
 	public static final field NOT_FOUND Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field NOT_READY_TO_REPORT Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field PARAMETER_MISSING Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field RATE_LIMIT_FAILED_AUTH Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field RATE_LIMIT_PER_ACCOUNT Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field RATE_LIMIT_PER_IP Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field RATE_LIMIT_PUBLIC_PER_ACCOUNT Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field SMS_DOMAIN_NOT_CONFIGURED Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field STALE_DISPATCH Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field SUPERSEDED Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field TEMPLATE_GROUP_NOT_FOUND Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field TOO_MANY_ATTEMPTS Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field UNAUTHORIZED Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field VALIDATION_FAILED Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field VOLUME_LIMIT_REACHED Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public final fun getSlug ()Ljava/lang/String;
 	public static fun valueOf (Ljava/lang/String;)Lcom/didww/android/sdk/verification/ApiErrorCode;
@@ -71,8 +82,13 @@ public final class com/didww/android/sdk/verification/CalloutInfo {
 	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (Ljava/lang/String;Ljava/lang/Integer;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getCodeLength ()Ljava/lang/Integer;
 	public final fun getLanguage ()Ljava/lang/String;
+	public final fun getTemplateFallbackReason ()Ljava/lang/String;
+	public final fun getTemplateGroup ()Ljava/lang/String;
+	public final fun getTemplateGroupUsed ()Ljava/lang/Boolean;
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -80,7 +96,10 @@ public final class com/didww/android/sdk/verification/CalloutOptions {
 	public fun <init> ()V
 	public fun <init> (Ljava/util/List;)V
 	public synthetic fun <init> (Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/util/List;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/util/List;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getLanguages ()Ljava/util/List;
+	public final fun getTemplateGroup ()Ljava/lang/String;
 }
 
 public final class com/didww/android/sdk/verification/Config {
@@ -200,16 +219,29 @@ public final class com/didww/android/sdk/verification/SdkError$Transport : com/d
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class com/didww/android/sdk/verification/SmsAutofill {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun getType ()Ljava/lang/String;
+	public final fun getValue ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class com/didww/android/sdk/verification/SmsInfo {
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/String;Lcom/didww/android/sdk/verification/SmsAutofill;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/String;Lcom/didww/android/sdk/verification/SmsAutofill;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getAutofill ()Lcom/didww/android/sdk/verification/SmsAutofill;
 	public final fun getCodeLength ()Ljava/lang/Integer;
 	public final fun getInterceptionTimeoutSeconds ()Ljava/lang/Integer;
 	public final fun getLanguage ()Ljava/lang/String;
 	public final fun getTemplate ()Ljava/lang/String;
+	public final fun getTemplateFallbackReason ()Ljava/lang/String;
+	public final fun getTemplateGroup ()Ljava/lang/String;
+	public final fun getTemplateGroupUsed ()Ljava/lang/Boolean;
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -217,7 +249,27 @@ public final class com/didww/android/sdk/verification/SmsOptions {
 	public fun <init> ()V
 	public fun <init> (Ljava/util/List;)V
 	public synthetic fun <init> (Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/util/List;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/util/List;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getLanguages ()Ljava/util/List;
+	public final fun getTemplateGroup ()Ljava/lang/String;
+}
+
+public final class com/didww/android/sdk/verification/TemplateFallbackReason : java/lang/Enum {
+	public static final field AUDIO_NOT_READY Lcom/didww/android/sdk/verification/TemplateFallbackReason;
+	public static final field Companion Lcom/didww/android/sdk/verification/TemplateFallbackReason$Companion;
+	public static final field GROUP_MISSING Lcom/didww/android/sdk/verification/TemplateFallbackReason;
+	public static final field LANGUAGE_MISSING Lcom/didww/android/sdk/verification/TemplateFallbackReason;
+	public static final field VERSION_PENDING Lcom/didww/android/sdk/verification/TemplateFallbackReason;
+	public static final field VERSION_REJECTED Lcom/didww/android/sdk/verification/TemplateFallbackReason;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getSlug ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lcom/didww/android/sdk/verification/TemplateFallbackReason;
+	public static fun values ()[Lcom/didww/android/sdk/verification/TemplateFallbackReason;
+}
+
+public final class com/didww/android/sdk/verification/TemplateFallbackReason$Companion {
+	public final fun fromSlug (Ljava/lang/String;)Lcom/didww/android/sdk/verification/TemplateFallbackReason;
 }
 
 public abstract interface class com/didww/android/sdk/verification/VerificationHandle {
@@ -296,6 +348,8 @@ public final class com/didww/android/sdk/verification/callout/CalloutVerificatio
 	public synthetic fun <init> (Landroid/content/Context;Lcom/didww/android/sdk/verification/Auth;Lcom/didww/android/sdk/verification/Environment;Lcom/didww/android/sdk/verification/Config;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun resume (Ljava/lang/String;)Lcom/didww/android/sdk/verification/VerificationHandle;
 	public final fun start (Ljava/lang/String;Lcom/didww/android/sdk/verification/CalloutOptions;)Lcom/didww/android/sdk/verification/VerificationHandle;
+	public final fun start (Ljava/lang/String;Lcom/didww/android/sdk/verification/CalloutOptions;Ljava/lang/String;)Lcom/didww/android/sdk/verification/VerificationHandle;
 	public static synthetic fun start$default (Lcom/didww/android/sdk/verification/callout/CalloutVerification;Ljava/lang/String;Lcom/didww/android/sdk/verification/CalloutOptions;ILjava/lang/Object;)Lcom/didww/android/sdk/verification/VerificationHandle;
+	public static synthetic fun start$default (Lcom/didww/android/sdk/verification/callout/CalloutVerification;Ljava/lang/String;Lcom/didww/android/sdk/verification/CalloutOptions;Ljava/lang/String;ILjava/lang/Object;)Lcom/didww/android/sdk/verification/VerificationHandle;
 }
 

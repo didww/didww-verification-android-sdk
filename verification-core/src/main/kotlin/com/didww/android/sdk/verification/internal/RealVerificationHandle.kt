@@ -17,6 +17,7 @@ import com.didww.android.sdk.verification.VerificationState
 import com.didww.android.sdk.verification.VerificationStatus
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ProducerScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.launch
@@ -59,6 +60,7 @@ internal class RealVerificationHandle(
     private val transport: Transport,
     private val requests: RequestFactory,
     private val clock: Clock,
+    private val custom: String? = null,
 ) : VerificationHandle {
 
     private class Submission(val value: String, val automatic: Boolean)
@@ -108,7 +110,7 @@ internal class RealVerificationHandle(
         send(VerificationState.Starting)
 
         val opening = when (origin) {
-            Origin.CREATE -> requests.create(destination, method, requestChannelBlock)
+            Origin.CREATE -> requests.create(destination, method, requestChannelBlock, custom)
             Origin.RESUME -> requests.showByNumber(destination)
         }
 
@@ -122,6 +124,10 @@ internal class RealVerificationHandle(
             // retry against, and a lookup that was rejected has nothing to resubmit.
             is Exchange.Retryable -> {
                 send(VerificationState.Failed(FailureReason.Api(outcome.error)))
+                return
+            }
+            is Exchange.RateLimited -> {
+                send(terminalStateFor(outcome.error))
                 return
             }
         }
@@ -193,12 +199,26 @@ internal class RealVerificationHandle(
                 if (submission.automatic) send(VerificationState.Captured(submission.value))
                 send(VerificationState.Submitting)
 
-                when (val outcome = exchange(reportRequest(payload, effectiveMethod, submission.value))) {
+                val request = reportRequest(payload, effectiveMethod, submission.value)
+                var outcome = exchange(request)
+                if (outcome is Exchange.RateLimited) {
+                    val waitSeconds = outcome.error.retryAfterSeconds ?: 1
+                    if (waitSeconds <= MAX_RATE_LIMIT_WAIT_SECONDS) {
+                        delay(TimeUnit.SECONDS.toMillis(waitSeconds.coerceAtLeast(0).toLong()))
+                        outcome = exchange(request)
+                    }
+                }
+                when (outcome) {
                     is Exchange.Terminal -> {
                         send(outcome.state)
                         return
                     }
                     is Exchange.Retryable -> {
+                        lastError = outcome.error
+                    }
+                    // Still limited, or the wait was too long to retry: surface it, but the code
+                    // may be submitted again.
+                    is Exchange.RateLimited -> {
                         lastError = outcome.error
                     }
                     is Exchange.Ok -> {
@@ -252,12 +272,22 @@ internal class RealVerificationHandle(
                     language = payload.language,
                     interceptionTimeoutSeconds = payload.interceptionTimeoutSeconds,
                     codeLength = payload.codeLength,
+                    templateGroup = payload.templateGroup,
+                    templateGroupUsed = payload.templateGroupUsed,
+                    templateFallbackReason = payload.templateFallbackReason,
+                    autofill = payload.autofill,
                 )
             } else {
                 null
             },
             callout = if (effectiveMethod == DeliveryMethod.CALLOUT) {
-                CalloutInfo(language = payload.language, codeLength = payload.codeLength)
+                CalloutInfo(
+                    language = payload.language,
+                    codeLength = payload.codeLength,
+                    templateGroup = payload.templateGroup,
+                    templateGroupUsed = payload.templateGroupUsed,
+                    templateFallbackReason = payload.templateFallbackReason,
+                )
             } else {
                 null
             },
@@ -281,6 +311,8 @@ internal class RealVerificationHandle(
         class Ok(val payload: VerificationPayload) : Exchange
         /** The server said no, but the verification is still live and can take another value. */
         class Retryable(val error: ApiErrorItem) : Exchange
+        /** A request rate limit: worth one automatic retry when submitting a code. */
+        class RateLimited(val error: ApiErrorItem) : Exchange
         class Terminal(val state: VerificationState) : Exchange
     }
 
@@ -310,8 +342,10 @@ internal class RealVerificationHandle(
             val error = response.retryAfterSeconds?.let {
                 ApiErrorItem(first.code, first.detail, first.known, it)
             } ?: first
-            return if (error.known in RETRYABLE) Exchange.Retryable(error) else {
-                Exchange.Terminal(terminalStateFor(error))
+            return when (error.known) {
+                in RETRYABLE -> Exchange.Retryable(error)
+                in RATE_LIMITS -> Exchange.RateLimited(error)
+                else -> Exchange.Terminal(terminalStateFor(error))
             }
         }
 
@@ -327,9 +361,12 @@ internal class RealVerificationHandle(
     }
 
     private fun terminalStateFor(error: ApiErrorItem): VerificationState = when (error.known) {
-        ApiErrorCode.DENIED_MISSING_CALLBACK_URL -> VerificationState.SetupError(error.code, error.detail)
+        ApiErrorCode.DENIED_MISSING_CALLBACK_URL,
+        ApiErrorCode.APPLICATION_PAUSED,
+        -> VerificationState.SetupError(error.code, error.detail)
         ApiErrorCode.DENIED_BY_CALLBACK,
         ApiErrorCode.DENIED_INVALID_CALLBACK_RESPONSE,
+        ApiErrorCode.DESTINATION_COUNTRY_DISABLED,
         -> VerificationState.Denied(error)
         ApiErrorCode.EXPIRED -> VerificationState.Expired
         else -> VerificationState.Failed(FailureReason.Api(error))
@@ -340,8 +377,15 @@ internal class RealVerificationHandle(
         VerificationStatus.Expired -> VerificationState.Expired
         VerificationStatus.Failed ->
             VerificationState.Failed(FailureReason.Api(payload.error ?: UNSPECIFIED_FAILURE))
-        VerificationStatus.Denied -> payload.error?.let { terminalStateFor(it) }
-            ?: VerificationState.Denied(null)
+        // Any other denial code, including one this release does not know, stays Denied.
+        VerificationStatus.Denied -> payload.error.let { error ->
+            when (error?.known) {
+                ApiErrorCode.DENIED_MISSING_CALLBACK_URL,
+                ApiErrorCode.APPLICATION_PAUSED,
+                -> VerificationState.SetupError(error.code, error.detail)
+                else -> VerificationState.Denied(error)
+            }
+        }
         VerificationStatus.Pending -> null
         // Non-terminal by design. A status this release does not know leaves the
         // state machine where it is and emits nothing, so a server that grows a sixth
@@ -369,6 +413,19 @@ internal class RealVerificationHandle(
             // The row exists but has not reached a reportable state yet. Keep waiting.
             ApiErrorCode.NOT_READY_TO_REPORT,
         )
+
+        /**
+         * Request rate limits, retried once on a code submission. `volume_limit_reached` and
+         * `destination_in_cooldown` are not here: they stay terminal.
+         */
+        private val RATE_LIMITS = setOf(
+            ApiErrorCode.RATE_LIMIT_PER_IP,
+            ApiErrorCode.RATE_LIMIT_FAILED_AUTH,
+            ApiErrorCode.RATE_LIMIT_PER_ACCOUNT,
+            ApiErrorCode.RATE_LIMIT_PUBLIC_PER_ACCOUNT,
+        )
+
+        private const val MAX_RATE_LIMIT_WAIT_SECONDS = 5
 
         /**
          * `already_verified` is deliberately terminal-as-a-FAILURE rather than mapped to

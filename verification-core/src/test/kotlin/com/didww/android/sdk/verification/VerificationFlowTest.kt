@@ -223,6 +223,46 @@ class VerificationFlowTest {
     }
 
     @Test
+    fun `a paused application is a SetupError, because retrying cannot help`() = runTest {
+        val body = Fixtures.deniedByCallback().replace("denied_by_callback", "application_paused")
+        val states = engine(FakeTransport(created(body))).start("+37112345678", DeliveryMethod.SMS, null, null)
+            .states.toList()
+
+        assertEquals(listOf("Starting", "SetupError"), states.shape())
+        assertEquals("application_paused", (states.last() as VerificationState.SetupError).code)
+    }
+
+    @Test
+    fun `a disabled destination country is Denied`() = runTest {
+        val body = Fixtures.deniedByCallback().replace("denied_by_callback", "destination_country_disabled")
+        val states = engine(FakeTransport(created(body))).start("+37112345678", DeliveryMethod.SMS, null, null)
+            .states.toList()
+
+        assertEquals(ApiErrorCode.DESTINATION_COUNTRY_DISABLED, (states.last() as VerificationState.Denied).error?.known)
+    }
+
+    @Test
+    fun `a denial code this release does not know is still Denied`() = runTest {
+        val body = Fixtures.deniedByCallback().replace("denied_by_callback", "denied_some_future_reason")
+        val states = engine(FakeTransport(created(body))).start("+37112345678", DeliveryMethod.SMS, null, null)
+            .states.toList()
+
+        assertEquals(listOf("Starting", "Denied"), states.shape())
+        val error = (states.last() as VerificationState.Denied).error
+        assertNull(error?.known)
+        assertEquals("denied_some_future_reason", error?.code)
+    }
+
+    @Test
+    fun `an unsupported destination can arrive as a failed outcome`() = runTest {
+        val transport = FakeTransport(created(Fixtures.failed(code = "destination_not_supported_for_channel")))
+        val states = engine(transport).start("+37112345678", DeliveryMethod.SMS, null, null).states.toList()
+
+        val reason = (states.last() as VerificationState.Failed).reason
+        assertEquals(ApiErrorCode.DESTINATION_NOT_SUPPORTED_FOR_CHANNEL, (reason as FailureReason.Api).error.known)
+    }
+
+    @Test
     fun `a failed status on create carries the wire error code`() = runTest {
         val transport = FakeTransport(created(Fixtures.failed()))
         val handle = engine(transport).start("+37112345678", DeliveryMethod.SMS, null, null)
@@ -523,6 +563,47 @@ class VerificationFlowTest {
         assertEquals(Fixtures.CODE_LENGTH, calloutAwaiting.callout?.codeLength)
     }
 
+    @Test
+    fun `template-group fields and the autofill echo reach AwaitingInput`() = runTest {
+        val transport = FakeTransport(
+            created(
+                Fixtures.pendingSms(
+                    appHash = "example.com",
+                    autofillType = "domain",
+                    templateGroup = "checkout",
+                    templateFallbackReason = "version_pending",
+                ),
+            ),
+            ok(Fixtures.verified()),
+        )
+        val handle = engine(transport).start("+37112345678", DeliveryMethod.SMS, null, null)
+        handle.submit("123456")
+
+        val sms = (handle.states.toList()[1] as VerificationState.AwaitingInput).sms!!
+        assertEquals("checkout", sms.templateGroup)
+        assertEquals(false, sms.templateGroupUsed)
+        assertEquals(TemplateFallbackReason.VERSION_PENDING, TemplateFallbackReason.fromSlug(sms.templateFallbackReason))
+        assertEquals("domain", sms.autofill?.type)
+        assertEquals("example.com", sms.autofill?.value)
+
+        val calloutTransport = FakeTransport(
+            created(Fixtures.pendingCallout(templateGroup = "checkout", templateGroupUsed = true)),
+            ok(Fixtures.verified("id", "callout")),
+        )
+        val calloutHandle = engine(calloutTransport).start("+37112345678", DeliveryMethod.CALLOUT, null, null)
+        calloutHandle.submit("123456")
+        val callout = (calloutHandle.states.toList()[1] as VerificationState.AwaitingInput).callout!!
+        assertEquals("checkout", callout.templateGroup)
+        assertEquals(true, callout.templateGroupUsed)
+        assertNull(callout.templateFallbackReason)
+    }
+
+    @Test
+    fun `an unknown fallback reason keeps its raw value`() {
+        assertNull(TemplateFallbackReason.fromSlug("some_future_reason"))
+        assertEquals(TemplateFallbackReason.GROUP_MISSING, TemplateFallbackReason.fromSlug("group_missing"))
+    }
+
     // ------------------------------------------------------------------- cooldown
 
     @Test
@@ -547,6 +628,116 @@ class VerificationFlowTest {
 
         val error = ((handle.states.toList().last() as VerificationState.Failed).reason as FailureReason.Api).error
         assertNull(error.retryAfterSeconds)
+    }
+
+    // ----------------------------------------------------------------- rate limits
+
+    @Test
+    fun `a rate-limited submission waits Retry-After and is retried once`() = runTest {
+        val transport = FakeTransport(
+            created(Fixtures.pendingSms()),
+            tooManyRequests(Fixtures.error("rate_limit_per_ip", "too many requests"), retryAfterSeconds = 1),
+            ok(Fixtures.verified()),
+        )
+        val handle = engine(transport).start("+37112345678", DeliveryMethod.SMS, null, null)
+        handle.submit("123456")
+
+        val states = handle.states.toList()
+
+        assertEquals(listOf("Starting", "AwaitingInput", "Submitting", "Verified"), states.shape())
+        assertEquals(3, transport.requests.size)
+        assertEquals(1_000L, testScheduler.currentTime)
+    }
+
+    @Test
+    fun `a submission still rate-limited after the retry stays live for another attempt`() = runTest {
+        val transport = FakeTransport(
+            created(Fixtures.pendingSms()),
+            tooManyRequests(Fixtures.error("rate_limit_failed_auth", "too many requests"), retryAfterSeconds = 1),
+            tooManyRequests(Fixtures.error("rate_limit_failed_auth", "too many requests"), retryAfterSeconds = 1),
+            ok(Fixtures.verified()),
+        )
+        val handle = engine(transport).start("+37112345678", DeliveryMethod.SMS, null, null)
+        handle.submit("123456")
+        handle.submit("123456")
+
+        val states = handle.states.toList()
+
+        assertEquals(
+            listOf("Starting", "AwaitingInput", "Submitting", "AwaitingInput", "Submitting", "Verified"),
+            states.shape(),
+        )
+        val retry = states[3] as VerificationState.AwaitingInput
+        assertEquals(ApiErrorCode.RATE_LIMIT_FAILED_AUTH, retry.lastError?.known)
+        assertEquals(1, retry.lastError?.retryAfterSeconds)
+        assertEquals(4, transport.requests.size)
+    }
+
+    @Test
+    fun `a rate-limit wait at the cap is waited in full before the retry`() = runTest {
+        val transport = FakeTransport(
+            created(Fixtures.pendingSms()),
+            tooManyRequests(Fixtures.error("rate_limit_per_account", "too many requests"), retryAfterSeconds = 5),
+            ok(Fixtures.verified()),
+        )
+        val handle = engine(transport).start("+37112345678", DeliveryMethod.SMS, null, null)
+        handle.submit("123456")
+
+        assertEquals("Verified", handle.states.toList().last()::class.simpleName)
+        assertEquals(5_000L, testScheduler.currentTime)
+        assertEquals(3, transport.requests.size)
+    }
+
+    @Test
+    fun `a rate-limit wait above the cap is surfaced at once and stays live`() = runTest {
+        val transport = FakeTransport(
+            created(Fixtures.pendingSms()),
+            tooManyRequests(Fixtures.error("rate_limit_per_account", "too many requests"), retryAfterSeconds = 60),
+            ok(Fixtures.verified()),
+        )
+        val handle = engine(transport).start("+37112345678", DeliveryMethod.SMS, null, null)
+        handle.submit("123456")
+        handle.submit("123456")
+
+        val states = handle.states.toList()
+
+        assertEquals(
+            listOf("Starting", "AwaitingInput", "Submitting", "AwaitingInput", "Submitting", "Verified"),
+            states.shape(),
+        )
+        val retry = states[3] as VerificationState.AwaitingInput
+        assertEquals(ApiErrorCode.RATE_LIMIT_PER_ACCOUNT, retry.lastError?.known)
+        assertEquals(60, retry.lastError?.retryAfterSeconds)
+        assertEquals(0L, testScheduler.currentTime)
+        assertEquals(3, transport.requests.size)
+    }
+
+    @Test
+    fun `a rate limit on create is terminal and never retried`() = runTest {
+        val transport = FakeTransport(
+            tooManyRequests(Fixtures.error("rate_limit_public_per_account", "too many requests"), retryAfterSeconds = 1),
+        )
+        val handle = engine(transport).start("+37112345678", DeliveryMethod.SMS, null, null)
+
+        val states = handle.states.toList()
+
+        assertEquals(listOf("Starting", "Failed"), states.shape())
+        assertEquals(1, transport.requests.size)
+    }
+
+    @Test
+    fun `volume_limit_reached on a submission is terminal and never retried`() = runTest {
+        val transport = FakeTransport(
+            created(Fixtures.pendingSms()),
+            tooManyRequests(Fixtures.error("volume_limit_reached", "volume limit reached"), retryAfterSeconds = 3600),
+        )
+        val handle = engine(transport).start("+37112345678", DeliveryMethod.SMS, null, null)
+        handle.submit("123456")
+
+        val states = handle.states.toList()
+
+        assertEquals(listOf("Starting", "AwaitingInput", "Submitting", "Failed"), states.shape())
+        assertEquals(2, transport.requests.size)
     }
 
     private companion object {

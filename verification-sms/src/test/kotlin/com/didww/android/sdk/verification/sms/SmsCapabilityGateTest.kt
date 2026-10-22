@@ -6,6 +6,7 @@ import com.didww.android.sdk.verification.Auth
 import com.didww.android.sdk.verification.Config
 import com.didww.android.sdk.verification.DidwwInternalApi
 import com.didww.android.sdk.verification.Environment
+import com.didww.android.sdk.verification.SmsOptions
 import com.didww.android.sdk.verification.VerificationEngine
 import com.didww.android.sdk.verification.VerificationState
 import com.didww.android.sdk.verification.testing.FakeTransport
@@ -94,15 +95,42 @@ class SmsCapabilityGateTest {
         handle.submit("123456")
         handle.states.toList()
 
-        assertTrue(transport.requests.first().body!!.contains("\"app_hash\""))
+        val body = transport.requests.first().body!!
+        val ourHash = AppHash.compute(app)!!
+        assertTrue(body.contains("\"autofill\":{\"type\":\"app_hash\",\"value\":\"$ourHash\"}"))
+    }
+
+    @Test
+    fun `template_group travels in the sms block, next to the app hash`() = runTest {
+        val transport = FakeTransport(created(Fixtures.pendingSms()), ok(Fixtures.verified()))
+        val handle = sms(transport).start("+37112345678", SmsOptions(templateGroup = "checkout"))
+        handle.submit("123456")
+        handle.states.toList()
+
+        val body = transport.requests.first().body!!
+        assertTrue(body.contains("\"sms\":{\"template_group\":\"checkout\",\"autofill\":{"))
     }
 
     @Test
     fun `an echo that does not match what was sent keeps the gate closed`() = runTest {
-        // The echo has to be the persisted value, so a mismatch means the row does not
-        // carry our hash and the dispatcher will not append it.
+        // The echo is the stored value, so a mismatch means the verification does not
+        // carry our hash and the API will not append it.
         val transport = FakeTransport(
             created(Fixtures.pendingSms(appHash = "NOTOURHASH")),
+            ok(Fixtures.verified()),
+        )
+        val handle = sms(transport).start("+37112345678")
+        handle.submit("123456")
+        handle.states.toList()
+
+        assertTrue(retrieverReceivers().isEmpty())
+    }
+
+    @Test
+    fun `an echo of our hash under another autofill type keeps the gate closed`() = runTest {
+        // Only an app_hash autofill makes the API append the Retriever hash.
+        val transport = FakeTransport(
+            created(Fixtures.pendingSms(appHash = AppHash.compute(app)!!, autofillType = "none")),
             ok(Fixtures.verified()),
         )
         val handle = sms(transport).start("+37112345678")
@@ -170,6 +198,18 @@ class SmsCapabilityGateTest {
             "teardown must run when the flow completes, not only when it is cancelled",
             retrieverReceivers().isEmpty(),
         )
+    }
+
+    @Test
+    fun `a resumed verification whose echo matches our hash arms the Retriever`() = runTest {
+        val transport = FakeTransport(ok(Fixtures.pendingSms(appHash = AppHash.compute(app)!!)))
+        val handle = sms(transport).resume("+37112345678")
+
+        val job = launch { handle.states.toList() }
+        runCurrent()
+
+        assertEquals(1, retrieverReceivers().size)
+        job.cancel()
     }
 
     private fun successStatus() = com.google.android.gms.common.api.Status(

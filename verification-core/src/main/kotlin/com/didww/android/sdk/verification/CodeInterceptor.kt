@@ -15,7 +15,10 @@ public class InterceptionContext(
     public val deliveryMethod: DeliveryMethod,
     /** The rendered template with `{{CODE}}` still in place, when the channel sends one. */
     public val template: String?,
-    /** The channel block the server returned, e.g. `{"template": "...", "app_hash": "..."}`. */
+    /**
+     * The channel block the server returned, e.g.
+     * `{"template": "...", "autofill": {"type": "app_hash", "value": "..."}}`.
+     */
     public val responseChannelBlock: JsonObject?,
     /** The channel block this client sent on create. */
     public val requestChannelBlock: JsonObject?,

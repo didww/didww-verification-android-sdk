@@ -42,9 +42,13 @@ public object Fixtures {
         template: String? = TEMPLATE,
         expiresAt: String? = "2030-01-01T00:02:00Z",
         appHash: String? = null,
+        autofillType: String = "app_hash",
         interceptionTimeout: Int? = INTERCEPTION_TIMEOUT,
         language: String? = LANGUAGE,
         codeLength: Int? = CODE_LENGTH,
+        templateGroup: String? = null,
+        templateGroupUsed: Boolean? = false,
+        templateFallbackReason: String? = null,
         fee: String = "\"0.0450\"",
     ): String = """
         {"data":{
@@ -63,25 +67,29 @@ public object Fixtures {
     }${
         codeLength?.let { ",\"code_length\":$it" } ?: ""
     }${
-        appHash?.let { ",\"app_hash\":\"$it\"" } ?: ""
-    }}
+        appHash?.let { ",\"autofill\":{\"type\":\"$autofillType\",\"value\":\"$it\"}" } ?: ""
+    },${templateFields(templateGroup, templateGroupUsed, templateFallbackReason)}}
         }}
     """.trimIndent()
 
     /**
-     * A live callout verification. The block carries `language` and `code_length` — that is
-     * the whole of the API's callout block at this version.
+     * A live callout verification. The block carries `language`, `code_length` and the
+     * template-group fields — that is the whole of the API's callout block at this version.
      */
     public fun pendingCallout(
         id: String = ID,
         expiresAt: String? = "2030-01-01T00:02:00Z",
         language: String? = LANGUAGE,
         codeLength: Int? = CODE_LENGTH,
+        templateGroup: String? = null,
+        templateGroupUsed: Boolean? = false,
+        templateFallbackReason: String? = null,
     ): String {
         // Joined rather than chained with a leading comma, since no field here is unconditional.
         val fields = listOfNotNull(
             language?.let { "\"language\":\"$it\"" },
             codeLength?.let { "\"code_length\":$it" },
+            templateFields(templateGroup, templateGroupUsed, templateFallbackReason),
         ).joinToString(",")
         return """
             {"data":{
@@ -97,6 +105,14 @@ public object Fixtures {
             }}
         """.trimIndent()
     }
+
+    /** `template_group` and `template_fallback_reason` render as JSON `null`, as the API sends them. */
+    private fun templateFields(group: String?, used: Boolean?, fallbackReason: String?): String =
+        listOfNotNull(
+            "\"template_group\":${group?.let { "\"$it\"" }}",
+            used?.let { "\"template_group_used\":$it" },
+            "\"template_fallback_reason\":${fallbackReason?.let { "\"$it\"" }}",
+        ).joinToString(",")
 
     public fun pending(method: String, id: String = ID, expiresAt: String? = "2030-01-01T00:02:00Z"): String = """
         {"data":{

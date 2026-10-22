@@ -35,4 +35,20 @@ public class CalloutOptions(
      * the server's default stand.
      */
     public val languages: List<String>? = null,
-)
+) {
+    /**
+     * The name of one of the application's template groups, used instead of its default
+     * group — the same option as [SmsOptions.templateGroup]. An unknown name is rejected as
+     * `template_group_not_found`. `null` lets the default stand.
+     */
+    public var templateGroup: String? = null
+        private set
+
+    /** Adds [templateGroup] without touching the primary constructor above — see its doc. */
+    public constructor(
+        languages: List<String>? = null,
+        templateGroup: String?,
+    ) : this(languages) {
+        this.templateGroup = templateGroup
+    }
+}
