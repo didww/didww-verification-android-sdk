@@ -66,6 +66,7 @@ public enum class ApiErrorCode(public val slug: String) {
     RATE_LIMIT_PER_ACCOUNT("rate_limit_per_account"),
     RATE_LIMIT_PUBLIC_PER_ACCOUNT("rate_limit_public_per_account"),
     VOLUME_LIMIT_REACHED("volume_limit_reached"),
+    DESTINATION_PREFIX_RATE_LIMITED("destination_prefix_rate_limited"),
 
     // Outcome codes, surfaced as `error_code` on a finished verification.
     DISPATCH_FAILED("dispatch_failed"),

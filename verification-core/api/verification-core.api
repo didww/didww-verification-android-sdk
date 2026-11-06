@@ -21,6 +21,7 @@ public final class com/didww/android/sdk/verification/ApiErrorCode : java/lang/E
 	public static final field DESTINATION_INVALID Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field DESTINATION_IN_COOLDOWN Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field DESTINATION_NOT_SUPPORTED_FOR_CHANNEL Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field DESTINATION_PREFIX_RATE_LIMITED Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field DISPATCH_FAILED Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field EXPIRED Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field INTERNAL_ERROR Lcom/didww/android/sdk/verification/ApiErrorCode;
