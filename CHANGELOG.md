@@ -16,6 +16,11 @@ to the public surface requires a major version. The three artifacts version toge
   `Failed` with the error carrying `retryAfterSeconds`. A suggested message for the user: "Too
   many verification requests right now. Please try again later."
 
+### Changed
+
+- The new `ApiErrorCode` value makes a `when` over the enum with no `else` branch
+  non-exhaustive, so it needs the new value or an `else` branch.
+
 ## [1.2.0] — 2026-10
 
 ### Added
