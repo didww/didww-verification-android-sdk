@@ -415,8 +415,9 @@ internal class RealVerificationHandle(
         )
 
         /**
-         * Request rate limits, retried once on a code submission. `volume_limit_reached` and
-         * `destination_in_cooldown` are not here: they stay terminal.
+         * Request rate limits, retried once on a code submission. `volume_limit_reached`,
+         * `destination_prefix_rate_limited` and `destination_in_cooldown` are not here: they stay
+         * terminal.
          */
         private val RATE_LIMITS = setOf(
             ApiErrorCode.RATE_LIMIT_PER_IP,

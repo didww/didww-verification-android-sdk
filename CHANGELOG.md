@@ -6,6 +6,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html): from 1.0.0 onwards a breaking change
 to the public surface requires a major version. The three artifacts version together.
 
+## [1.3.0] — Unreleased
+
+### Added
+
+- **`ApiErrorCode.DESTINATION_PREFIX_RATE_LIMITED`** (`destination_prefix_rate_limited`, `429`) —
+  too many verifications to this number range; try again later. It answers a start only, with a
+  `Retry-After` to wait before trying again. The SDK does not retry it: the verification ends in
+  `Failed` with the error carrying `retryAfterSeconds`. A suggested message for the user: "Too
+  many verification requests right now. Please try again later."
+
+### Changed
+
+- The new `ApiErrorCode` value makes a `when` over the enum with no `else` branch
+  non-exhaustive, so it needs the new value or an `else` branch.
+
 ## [1.2.0] — 2026-10
 
 ### Added
