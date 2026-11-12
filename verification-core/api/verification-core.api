@@ -5,6 +5,7 @@ public final class com/didww/android/sdk/verification/ApiErrorCode : java/lang/E
 	public static final field APP_HASH_INVALID Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field AUTOFILL_INVALID Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field BALANCE_INSUFFICIENT Lcom/didww/android/sdk/verification/ApiErrorCode;
+	public static final field CHANNEL_BLOCKED Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field CODE_BLANK Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field CODE_INVALID Lcom/didww/android/sdk/verification/ApiErrorCode;
 	public static final field CODE_VALUE_PRESENT Lcom/didww/android/sdk/verification/ApiErrorCode;

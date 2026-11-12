@@ -363,6 +363,7 @@ internal class RealVerificationHandle(
     private fun terminalStateFor(error: ApiErrorItem): VerificationState = when (error.known) {
         ApiErrorCode.DENIED_MISSING_CALLBACK_URL,
         ApiErrorCode.APPLICATION_PAUSED,
+        ApiErrorCode.CHANNEL_BLOCKED,
         -> VerificationState.SetupError(error.code, error.detail)
         ApiErrorCode.DENIED_BY_CALLBACK,
         ApiErrorCode.DENIED_INVALID_CALLBACK_RESPONSE,
@@ -382,6 +383,7 @@ internal class RealVerificationHandle(
             when (error?.known) {
                 ApiErrorCode.DENIED_MISSING_CALLBACK_URL,
                 ApiErrorCode.APPLICATION_PAUSED,
+                ApiErrorCode.CHANNEL_BLOCKED,
                 -> VerificationState.SetupError(error.code, error.detail)
                 else -> VerificationState.Denied(error)
             }

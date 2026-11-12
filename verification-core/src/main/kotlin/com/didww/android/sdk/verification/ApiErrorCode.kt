@@ -59,6 +59,9 @@ public enum class ApiErrorCode(public val slug: String) {
     VALIDATION_FAILED("validation_failed"),
     INTERNAL_ERROR("internal_error"),
 
+    /** The account can't use this delivery method; contact DIDWW support. */
+    CHANNEL_BLOCKED("channel_blocked"),
+
     // Rate and volume limits (429), each with a `Retry-After` header.
     DESTINATION_IN_COOLDOWN("destination_in_cooldown"),
     RATE_LIMIT_PER_IP("rate_limit_per_ip"),

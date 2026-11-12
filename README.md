@@ -456,7 +456,9 @@ never on `detail`.
 number: an application authenticated publicly with **no `callback_url`** returns `201` plus a
 denial on *every* start, forever. Surfacing that as an ordinary failure sends a host — and
 their user — looking at the phone number. A **paused application** (`application_paused`) is
-reported the same way: every start is refused until the account resumes it.
+reported the same way: every start is refused until the account resumes it. A refused start
+carrying `channel_blocked` lands here too: the account can't use the requested delivery
+method, so contact DIDWW support.
 
 ```kotlin
 is VerificationState.SetupError ->

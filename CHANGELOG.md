@@ -15,6 +15,8 @@ to the public surface requires a major version. The three artifacts version toge
   `Retry-After` to wait before trying again. The SDK does not retry it: the verification ends in
   `Failed` with the error carrying `retryAfterSeconds`. A suggested message for the user: "Too
   many verification requests right now. Please try again later."
+- **`channel_blocked`** error code. A start can be refused with a 422 carrying it when the account
+  can't use the requested delivery method; the session ends in `SetupError`. Contact DIDWW support.
 
 ### Changed
 

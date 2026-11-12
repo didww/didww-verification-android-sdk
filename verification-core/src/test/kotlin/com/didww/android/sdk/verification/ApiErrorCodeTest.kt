@@ -8,7 +8,7 @@ import org.junit.Test
 class ApiErrorCodeTest {
 
     /**
-     * Exactly forty-one slugs are reachable on this wire. DIDWW's error vocabulary as a
+     * Exactly forty-two slugs are reachable on this wire. DIDWW's error vocabulary as a
      * whole is larger, but the rest belong to other product surfaces and can never appear
      * on a verification response.
      *
@@ -16,8 +16,8 @@ class ApiErrorCodeTest {
      * mistake — fails loudly instead of shipping unreachable cases.
      */
     @Test
-    fun `enumerates exactly the forty-one slugs reachable on this wire`() {
-        assertEquals(41, ApiErrorCode.entries.size)
+    fun `enumerates exactly the forty-two slugs reachable on this wire`() {
+        assertEquals(42, ApiErrorCode.entries.size)
 
         val expected = setOf(
             "destination_blank", "destination_invalid",
@@ -35,7 +35,7 @@ class ApiErrorCodeTest {
             "dispatch_failed", "expired", "too_many_attempts", "stale_dispatch",
             "application_deleted", "superseded",
             "denied_missing_callback_url", "denied_by_callback", "denied_invalid_callback_response",
-            "application_paused", "destination_country_disabled",
+            "application_paused", "destination_country_disabled", "channel_blocked",
         )
         assertEquals(expected, ApiErrorCode.entries.map { it.slug }.toSet())
     }
