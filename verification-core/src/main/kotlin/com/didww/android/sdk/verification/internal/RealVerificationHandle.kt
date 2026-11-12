@@ -363,6 +363,7 @@ internal class RealVerificationHandle(
     private fun terminalStateFor(error: ApiErrorItem): VerificationState = when (error.known) {
         ApiErrorCode.DENIED_MISSING_CALLBACK_URL,
         ApiErrorCode.APPLICATION_PAUSED,
+        ApiErrorCode.CHANNEL_BLOCKED,
         -> VerificationState.SetupError(error.code, error.detail)
         ApiErrorCode.DENIED_BY_CALLBACK,
         ApiErrorCode.DENIED_INVALID_CALLBACK_RESPONSE,
@@ -382,6 +383,7 @@ internal class RealVerificationHandle(
             when (error?.known) {
                 ApiErrorCode.DENIED_MISSING_CALLBACK_URL,
                 ApiErrorCode.APPLICATION_PAUSED,
+                ApiErrorCode.CHANNEL_BLOCKED,
                 -> VerificationState.SetupError(error.code, error.detail)
                 else -> VerificationState.Denied(error)
             }
@@ -415,8 +417,9 @@ internal class RealVerificationHandle(
         )
 
         /**
-         * Request rate limits, retried once on a code submission. `volume_limit_reached` and
-         * `destination_in_cooldown` are not here: they stay terminal.
+         * Request rate limits, retried once on a code submission. `volume_limit_reached`,
+         * `destination_prefix_rate_limited` and `destination_in_cooldown` are not here: they stay
+         * terminal.
          */
         private val RATE_LIMITS = setOf(
             ApiErrorCode.RATE_LIMIT_PER_IP,

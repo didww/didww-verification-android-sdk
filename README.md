@@ -73,14 +73,14 @@ You also need, on the DIDWW side:
 // settings.gradle.kts — repositories { mavenCentral() }
 
 dependencies {
-    implementation("com.didww.android.sdk.verification:verification-all:1.2.0")
+    implementation("com.didww.android.sdk.verification:verification-all:1.3.0")
 }
 ```
 
 Pick the artifact that matches what you send — see [Artifacts](#artifacts) for why the split
 exists and what it saves you.
 
-**Version 1.2.0.** The public surface has been stable since 1.0.0: a breaking change to it
+**Version 1.3.0.** The public surface has been stable since 1.0.0: a breaking change to it
 requires a major version. The three artifacts version together, so they are always upgraded as a
 set.
 
@@ -456,7 +456,9 @@ never on `detail`.
 number: an application authenticated publicly with **no `callback_url`** returns `201` plus a
 denial on *every* start, forever. Surfacing that as an ordinary failure sends a host — and
 their user — looking at the phone number. A **paused application** (`application_paused`) is
-reported the same way: every start is refused until the account resumes it.
+reported the same way: every start is refused until the account resumes it. A refused start
+carrying `channel_blocked` lands here too: the account can't use the requested delivery
+method, so contact DIDWW support.
 
 ```kotlin
 is VerificationState.SetupError ->
@@ -479,6 +481,9 @@ A `429` on start surfaces the same way as any other server rejection — `Failed
 - `volume_limit_reached` — the application reached its daily or monthly verification limit.
   `Retry-After` can be long (days): surface it to the user instead of retrying. Contact
   support to raise the limit.
+- `destination_prefix_rate_limited` — too many verifications to this number range; try again
+  later. Wait `Retry-After`; the SDK does not retry it. A suggested message for the user: "Too
+  many verification requests right now. Please try again later."
 
 Wait the number of seconds in `Retry-After` (`retryAfterSeconds`) before trying again. When a
 `rate_limit_*` slug answers a submitted code, it is retried once after `Retry-After` when that

@@ -93,7 +93,8 @@ public sealed interface VerificationState {
      * application authenticated publicly with no `callback_url` returns 201 plus a denial
      * on *every* start, forever. Surfacing that as an ordinary failure would send a host
      * looking at the phone number. `application_paused` lands here too: until the account
-     * resumes the application, every start is refused the same way.
+     * resumes the application, every start is refused the same way. `channel_blocked` lands
+     * here too: the account can't use the requested delivery method; contact DIDWW support.
      */
     public class SetupError(
         public val code: String,

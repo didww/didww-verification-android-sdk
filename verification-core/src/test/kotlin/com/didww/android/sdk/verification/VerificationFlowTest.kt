@@ -740,6 +740,39 @@ class VerificationFlowTest {
         assertEquals(2, transport.requests.size)
     }
 
+    @Test
+    fun `destination_prefix_rate_limited on create is terminal, never retried, and carries retry-after`() = runTest {
+        val transport = FakeTransport(
+            tooManyRequests(
+                Fixtures.error("destination_prefix_rate_limited", "too many verifications to this number range; try again later"),
+                retryAfterSeconds = 120,
+            ),
+        )
+        val handle = engine(transport).start("+37112345678", DeliveryMethod.SMS, null, null)
+
+        val states = handle.states.toList()
+
+        assertEquals(listOf("Starting", "Failed"), states.shape())
+        val error = ((states.last() as VerificationState.Failed).reason as FailureReason.Api).error
+        assertEquals(ApiErrorCode.DESTINATION_PREFIX_RATE_LIMITED, error.known)
+        assertEquals(120, error.retryAfterSeconds)
+        assertEquals(1, transport.requests.size)
+    }
+
+    @Test
+    fun `channel_blocked on create is a SetupError and nothing is retried`() = runTest {
+        val transport = FakeTransport(
+            unprocessable(Fixtures.error("channel_blocked", "delivery method is blocked for this account")),
+        )
+        val states = engine(transport).start("+37112345678", DeliveryMethod.SMS, null, null).states.toList()
+
+        assertEquals(listOf("Starting", "SetupError"), states.shape())
+        val setup = states.last() as VerificationState.SetupError
+        assertEquals("channel_blocked", setup.code)
+        assertEquals("delivery method is blocked for this account", setup.detail)
+        assertEquals(1, transport.requests.size)
+    }
+
     private companion object {
         private const val BUDGET_SECONDS = 5
     }
